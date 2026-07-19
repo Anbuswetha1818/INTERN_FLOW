@@ -132,9 +132,9 @@ export default function InternOnboarding() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-      <Box sx={{ maxWidth: 900, mx: 'auto', p: 4, minHeight: '100vh' }}>
+      <Box sx={{ width: '100%', maxWidth: 900, mx: 'auto', p: { xs: 2, sm: 4 }, minHeight: '100vh', boxSizing: 'border-box' }}>
         
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 6 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
             <ContentPaste color="primary" sx={{ fontSize: 36 }} />
             <Typography variant="h4" fontWeight={800} color="primary.main">Intern Onboarding</Typography>
@@ -142,7 +142,7 @@ export default function InternOnboarding() {
           <Typography color="text.secondary">Complete your profile to generate your admission ID.</Typography>
         </Box>
 
-        <Paper sx={{ p: 4, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
+        <Paper sx={{ p: { xs: 2.5, sm: 4 }, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
           <Stepper activeStep={activeStep} sx={{ mb: 6 }}>
             {steps.map((label) => <Step key={label}><StepLabel>{label}</StepLabel></Step>)}
           </Stepper>

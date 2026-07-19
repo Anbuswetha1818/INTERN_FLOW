@@ -94,7 +94,7 @@ export default function Header({ basePath = '', onToggleSidebar }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 
         {user?.role === 'superadmin' && (
-          <FormControl size="small" sx={{ minWidth: 150 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: 110, sm: 150 } }}>
             <Select
               value={(entities.find(e => String(e.id) === String(user.entityId))?.name === 'InternFlow') ? 'all' : (user.entityId || 'all')}
               onChange={handleEntityChange}
@@ -103,7 +103,7 @@ export default function Header({ basePath = '', onToggleSidebar }) {
                 bgcolor: 'var(--glass-bg)',
                 borderRadius: 'var(--radius-full)',
                 height: 36,
-                fontSize: '0.875rem',
+                fontSize: '0.8125rem',
                 fontWeight: 500,
                 color: 'var(--text-primary)',
                 '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
@@ -131,11 +131,12 @@ export default function Header({ basePath = '', onToggleSidebar }) {
         <div
           className="topbar-user"
           onClick={(e) => setAnchorEl(e.currentTarget)}
+          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
         >
           <div className="avatar-topbar">
             {user.fullName?.charAt(0) || user.username?.charAt(0) || '?'}
           </div>
-          <div className="topbar-user-text">
+          <Box className="topbar-user-text" sx={{ display: { xs: 'none', sm: 'block' } }}>
             <div className="topbar-user-name">{user.fullName || user.username}</div>
             {(!user?.fullName || user.fullName.toLowerCase() !== (user?.role === 'superadmin' ? 'super admin' : user?.role)?.toLowerCase()) && (
               <div className="topbar-user-role">
@@ -147,7 +148,7 @@ export default function Header({ basePath = '', onToggleSidebar }) {
                 {user.entityName}
               </div>
             )}
-          </div>
+          </Box>
         </div>
 
 

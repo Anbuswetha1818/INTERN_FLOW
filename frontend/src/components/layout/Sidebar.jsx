@@ -221,7 +221,7 @@ export default function Sidebar({ type = 'admin', basePath = '', collapsed = fal
     <>
       {mobileOpen && (
         <Box
-          sx={{ position: 'fixed', inset: 0, bgcolor: 'rgba(0,0,0,0.5)', zIndex: 1150, display: { md: 'none' } }}
+          sx={{ position: 'fixed', inset: 0, bgcolor: 'rgba(0,0,0,0.5)', zIndex: 1150, display: { md: 'none' }, backdropFilter: 'blur(3px)' }}
           onClick={onClose}
         />
       )}

@@ -54,9 +54,12 @@ export default function LoginPage() {
   return (
     <Box sx={{
       minHeight: '100vh',
+      width: '100%',
+      boxSizing: 'border-box',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'var(--gradient-hero)',
       position: 'relative', overflow: 'hidden',
+      p: { xs: 2, sm: 3 },
     }}>
       {/* Animated background orbs */}
       <Box sx={{
@@ -76,12 +79,14 @@ export default function LoginPage() {
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
+        style={{ width: '100%', maxWidth: 420, display: 'flex', justifyContent: 'center' }}
       >
         <Box sx={{
-          width: 420,
-          maxWidth: '92vw',
-          p: { xs: 3, sm: 3.5 },
-          my: 3,
+          width: '100%',
+          maxWidth: 420,
+          mx: 'auto',
+          p: { xs: 2.5, sm: 4 },
+          my: 2,
           background: 'var(--bg-card)',
           backdropFilter: 'blur(30px)',
           border: '1px solid var(--border-subtle)',
