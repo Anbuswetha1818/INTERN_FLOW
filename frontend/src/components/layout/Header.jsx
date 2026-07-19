@@ -82,8 +82,8 @@ export default function Header({ basePath = '', onToggleSidebar }) {
   return (
     <div className="dashboard-header">
       {/* Left: Menu toggle + Search */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-        <IconButton onClick={onToggleSidebar} sx={{ display: { md: 'none' }, color: 'var(--text-primary)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+        <IconButton onClick={onToggleSidebar} sx={{ display: { md: 'none' }, color: 'var(--text-primary)', p: { xs: 0.5, sm: 1 } }}>
           <MenuIcon />
         </IconButton>
 
@@ -91,7 +91,7 @@ export default function Header({ basePath = '', onToggleSidebar }) {
       </div>
 
       {/* Right: Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
 
         {user?.role === 'superadmin' && (
           <FormControl size="small" sx={{ minWidth: { xs: 110, sm: 150 } }}>

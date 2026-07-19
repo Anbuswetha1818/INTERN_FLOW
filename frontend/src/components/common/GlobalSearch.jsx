@@ -108,7 +108,7 @@ export default function GlobalSearch() {
   }, [query, user]);
 
   return (
-    <Box sx={{ flex: 1, maxWidth: 420, position: 'relative' }} ref={anchorRef}>
+    <Box sx={{ flex: 1, minWidth: 0, maxWidth: { xs: 140, sm: 260, md: 420 }, position: 'relative' }} ref={anchorRef}>
       <div 
         className="topbar-search" 
         style={{ 
@@ -116,9 +116,9 @@ export default function GlobalSearch() {
           transition: 'all 0.2s'
         }}
       >
-        <SearchIcon style={{ fontSize: '17px', color: 'var(--text-secondary)' }} />
+        <SearchIcon style={{ fontSize: '16px', color: 'var(--text-secondary)' }} />
         <InputBase
-          placeholder="Search anything (tasks, users, docs)..."
+          placeholder="Search..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => { if (query.length > 1) setOpen(true); }}
