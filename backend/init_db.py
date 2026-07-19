@@ -93,12 +93,12 @@ admin_profile = UserProfile.objects.create(
     user_status="active"
 )
 
-# Create other users
 roles_data = [
     {"username": "manager", "email": "manager@internflow.dev", "role": "manager", "emp_id": "MAN0001", "full_name": "Manager", "domain": None},
     {"username": "sme", "email": "sme@internflow.dev", "role": "sme", "emp_id": "SME0001", "full_name": "SME", "domain": None},
     {"username": "mentor", "email": "mentor@internflow.dev", "role": "mentor", "emp_id": "MEN0001", "full_name": "Mentor", "domain": "Full Stack"},
-    {"username": "staff", "email": "staff@internflow.dev", "role": "staff", "emp_id": "STA0001", "full_name": "Staff", "domain": None}
+    {"username": "staff", "email": "staff@internflow.dev", "role": "staff", "emp_id": "STA0001", "full_name": "Staff", "domain": None},
+    {"username": "INT001", "email": "intern@internflow.dev", "role": "intern", "emp_id": "INT001", "full_name": "Intern User 1", "domain": "Full Stack"}
 ]
 
 for data in roles_data:
