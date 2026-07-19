@@ -1,0 +1,3969 @@
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 1 of 77 
+ 
+ 
+ 
+ 
+SIMS 
+Student Intern Management System 
+Complete Project Specification  ·  AI Features  ·  Execution Blueprint 
+Core Stack 
+React 18  ·  MUI v6  ·  Tailwind CSS  ·  React Router v7  ·  Django REST 
+Framework 
+AI Layer: Anthropic Claude API  ·  LangChain  ·  Python NLP 
+ 
+ 
+ 
+ 
+ 
+ 
+Document Date: 28 April 2026 
+ 
+ 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 2 of 77 
+1. System Overview 
+SIMS (Student Intern Management System) is a full-stack, AI-augmented web application that acts 
+as a lightweight ERP for managing the complete intern lifecycle — from entity setup and onboarding 
+through daily operations, task execution, AI-powered coaching, performance evaluation, and exit. A 
+standalone AI layer runs alongside every core module to automate insights, assist interns, and 
+reduce manual effort for managers and mentors. 
+ 
+1.1 Core Objectives 
+• 
+Manage the full intern lifecycle across multiple organizations from a single platform 
+• 
+Enforce granular role-based access — every user sees and does only what is permitted 
+• 
+Automate monitoring: attendance tracking, task deadlines, escalations, and performance metrics 
+• 
+Provide AI-powered features: performance analysis, resume tools, mock interviews, chatbot 
+assistant, and smart recommendations 
+• 
+Generate certificates, reports, and analytics without manual effort 
+ 
+1.2 Three Core Verticals 
+Vertical 
+Modules 
+Purpose 
+Identity & Access 
+Auth, Roles, 
+Permissions, Entities 
+Who can log in, what they see and do, and 
+which organization they belong to 
+Operations 
+Onboarding, 
+Attendance, Tasks, 
+Payments, Assets, 
+Documents, Leave, 
+Learning 
+Day-to-day management of interns from 
+joining to exit 
+Intelligence 
+Feedback, Metrics, 
+Reports, Certificates, 
+AI Features, 
+Notifications 
+Measuring outcomes, AI coaching, 
+generating insights, and communicating 
+results 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 3 of 77 
+2. Role Hierarchy & Responsibilities 
+The system is governed by a strict six-level role hierarchy. Higher roles inherit broader access; 
+lower roles are restricted to their immediate context. 
+ 
+Role 
+Scope 
+Key Capabilities 
+Data Visibility 
+Super Admin 
+All entities system-
+wide 
+Create entities, assign 
+Managers, activate global 
+modules 
+Unrestricted across all entities 
+Manager 
+Single entity 
+Full entity control: users, 
+modules, payments, 
+reports, configuration 
+All data within the entity 
+Lead / SME 
+Domain within entity 
+Create projects, assign 
+tasks, performance 
+evaluation, domain 
+analytics 
+Domain-level — all interns 
+under domain 
+Mentor 
+Assigned interns 
+only 
+Assign/review tasks, 
+approve leave, submit 
+feedback, view 
+attendance 
+Only interns assigned to them 
+Staff (Intern 
+view) 
+Individual intern 
+record 
+Full profile, documents, 
+tasks, payments for 
+managed intern 
+Single intern full record 
+Intern (Self) 
+Own account only 
+Check in/out, tasks, 
+leave, documents, 
+payments, AI tools 
+Own profile and data only 
+ 
+2.1 Permission Framework 
+Every action is gated by the permission engine. Four top-level dashboard access flags are checked 
+at route level: hasInternAccess, hasAssetAccess, hasAttendanceAccess, hasPayrollAccess. Within 
+each dashboard, fine-grained permissions control individual actions (create, edit, delete, approve, 
+export). The permission check is GET /Sims/user-permissions/ — called on every protected route 
+mount. Data visibility is enforced server-side by scoping all queries to the requesting user's entity, 
+role, and assigned interns/domains. 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 4 of 77 
+3. System Architecture 
+3.1 Frontend Architecture 
+React 18 SPA organized as independent dashboard shells — each major functional area has its 
+own sidebar and renders sub-views conditionally based on active view state, eliminating full page 
+reloads. MUI v6 provides the component library; Tailwind CSS handles layout and responsive 
+utilities. 
+ 
+Dashboard Shell 
+Route Prefix 
+Who Uses It 
+Admin Dashboard 
+/admin/* 
+Super Admin and Manager — entity 
+management and overview 
+Intern Dashboard (staff) 
+/intern/* 
+Lead, Mentor, Manager — 
+viewing/managing intern records 
+Task Dashboard 
+/task/* 
+Lead, Mentor, Manager — project and 
+task management 
+Attendance Dashboard 
+/attendance/* 
+All staff with attendance access 
+Asset Dashboard 
+/asset/* 
+All staff with asset access 
+Payroll Dashboard 
+/payroll/* 
+All staff with payroll access 
+Intern Self-Service 
+/intern-user/* 
+Intern — personal dashboard, tasks, AI 
+tools 
+ 
+3.2 Backend Architecture 
+The backend is a Django REST Framework application. All API endpoints are prefixed with /Sims/ 
+for the main SIMS app and /api/ for the standalone Forms app. Authentication uses DRF Token 
+auth. The backend handles all business logic, permission enforcement, data aggregation, certificate 
+generation, and file storage. 
+ 
+3.3 AI Architecture 
+The AI Layer is a separate Django app (or microservice) that integrates with the Anthropic Claude 
+API (claude-sonnet-4-5 model). AI endpoints are prefixed with /ai/ and are secured by the same 
+token auth as the rest of the system. Every AI call includes the user's context (role, domain, metrics, 
+recent history) as the system prompt so the model gives personalized, data-grounded responses. 
+ 
+Layer 
+Responsibility 
+Django REST API (/Sims/ + 
+/api/) 
+Authentication, CRUD operations, business logic, data 
+aggregation, permission enforcement, file storage, certificate 
+generation 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 5 of 77 
+Layer 
+Responsibility 
+AI Service (/ai/) 
+LLM calls to Claude API, resume parsing, interview simulation, 
+performance analysis, smart recommendations, chatbot 
+responses, skill gap analysis 
+Frontend (React) 
+UI rendering, state management, API calls via centralized Axios 
+instance, real-time updates via polling 
+ 
+3.4 API Layer 
+The frontend communicates exclusively via a centralized Axios instance (src/services/api.js) which: 
+• 
+Attaches the auth token to every outgoing request header 
+• 
+Intercepts 401 responses globally and redirects to /loginpage, clearing stored tokens 
+• 
+Has a 30-second timeout to fail fast on unresponsive endpoints 
+• 
+Is organized into named API modules: authAPI, usersAPI, tasksAPI, attendanceAPI, assetsAPI, 
+feesAPI, documentsAPI, certificatesAPI, feedbackAPI, notificationsAPI, formsAPI, 
+dashboardAPI, and more 
+• 
+AI endpoints use same token auth — no separate AI login required 
+• 
+AI responses are streamed where applicable for real-time UX (chatbot, mock interview, resume 
+builder) 
+ 
+3.5 State Management 
+State is managed entirely within React components using useState and useEffect hooks. There is 
+no global state library (no Redux, no Zustand). Shared state is passed via props or React Context. 
+Each dashboard shell manages its own active view, data cache, and loading state locally. 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 6 of 77 
+4. Entity & Organizational Structure 
+Supports a hierarchical organizational model — a single SIMS installation serves multiple 
+independent companies or academies, each with their own staff, interns, configuration, and data 
+silo. 
+ 
+Level 
+Created By 
+Description 
+Entity (Company / 
+Academy) 
+Super Admin 
+Top-level container. All data belongs to an entity. Each 
+entity has one Manager assigned. 
+Branch 
+Manager 
+Physical or logical sub-division (e.g., Chennai Office, 
+Remote Branch). 
+Department 
+Manager 
+Functional grouping within a branch (e.g., Engineering, 
+Design, Data Science). 
+Domain 
+Manager / Lead 
+Specialization within a department (Full Stack, ML, 
+DevOps, UI/UX, Cloud, Security, Data Science). 
+Team 
+Manager / Lead 
+Named group of interns assigned to a Mentor for project 
+work. 
+ 
+4.1 Hierarchy Levels 
+Level 
+Created By 
+Description 
+Entity (Company / 
+Academy) 
+Super Admin 
+Top-level container. All data belongs to an entity. Each 
+entity has one Manager assigned. 
+Branch 
+Manager 
+Physical or logical sub-division (e.g., Chennai Office, 
+Remote Branch). 
+Department 
+Manager 
+Functional grouping within a branch (e.g., Engineering, 
+Design, Data Science). 
+Domain 
+Manager / Lead 
+Specialization within a department (Full Stack, ML, 
+DevOps, UI/UX, Cloud, Security, Data Science). 
+Team 
+Manager / Lead 
+Named group of interns assigned to a Mentor for project 
+work. 
+ 
+4.2 Setup Flow 
+1. Super Admin creates an Entity and assigns a Manager. 
+2. Manager creates Branches, Departments, and Domains. 
+3. Manager creates Staff accounts (Lead, Mentor) assigned to departments. 
+4. Manager creates Teams and assigns Mentors as team leads. 
+5. Interns are onboarded and assigned to a Domain and Team. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 7 of 77 
+ 
+4.3 Entity Configuration 
+The Manager can configure the following at entity level via the Settings module: 
+• 
+Working hours and shift timings (shift_timing field set at intern onboarding) 
+• 
+Leave policy: quota, carry-forward rules, approval chain (Mentor → Lead → Manager) 
+• 
+Payment cycles and fee structures (weekly, bi-weekly, monthly) 
+• 
+Feature module activation / deactivation per entity (Learning Phase, Stipend, task self-creation, 
+AI features) 
+• 
+SLA default rules: default time window for task completion warnings and escalation thresholds 
+• 
+File upload restrictions: allowed types (PDF, JPG, PNG) and maximum file sizes 
+• 
+Notification templates: customize content of system-generated emails and in-app messages 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 8 of 77 
+5. Authentication & Session Management 
+5.1 Login Flow 
+6. User visits /loginpage and submits credentials to POST /Sims/login/ — returns Token. 
+7. Frontend stores token in localStorage. Username and role also stored. 
+8. GET /Sims/user-permissions/ is called → user routed to their permitted dashboard. 
+ 
+5.2 Route Protection 
+All routes are wrapped in ProtectedRoute (checks token presence) or ProtectedDashboardRoute 
+(additionally calls /Sims/user-permissions/ and redirects unauthorized users). 401 responses auto-
+clear localStorage and redirect to /loginpage. 
+ 
+5.3 Password Reset Flow 
+9. User visits /Recovery — enters email — POST /Sims/password-reset/request/ sends OTP. 
+10. User enters OTP — POST /Sims/password-reset/verify/. 
+11. User sets new password — POST /Sims/password-reset/update/. 
+ 
+5.4 Logout 
+Logout calls POST /Sims/logout/, then clears localStorage (token, username, role) and redirects to 
+/loginpage. The global 401 Axios interceptor also auto-logouts the user if any API call returns 
+unauthorized, ensuring stale sessions are cleared immediately. 
+ 
+5.5 Security Hardening 
+• 
+MFA (TOTP/OTP) for Manager, Lead, and Super Admin roles 
+• 
+Session management: active session list, force logout of specific sessions 
+• 
+Password complexity enforcement (min length, mixed characters) and expiry reminders 
+• 
+Role delegation with time expiry — delegated permissions auto-expire; all delegate actions are 
+attribution-logged 
+• 
+Immutable audit log (append-only) for all write operations 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 9 of 77 
+6. User Management 
+6.1 Staff Account Creation 
+Manager creates staff accounts (Lead, Mentor, Admin) via /admin/register. Fields: name, email, 
+employee ID, department, role, shift timing. POST /Sims/register/ creates the Django auth user and 
+associated profile record. 
+ 
+6.2 Staff Management 
+The Staff List page (/admin/user) provides the Manager with a full table of all staff members with: 
+• 
+View full staff profile (personal details, college details, documents) 
+• 
+Edit staff details via PATCH /Sims/user/update/{empId}/ 
+• 
+Deactivate / soft-delete staff via the deleted-users endpoint 
+• 
+Filter by department, role, and status 
+• 
+View staff grouped by department via GET /Sims/staffs-by-department/ 
+ 
+6.3 Intern Account Creation — via Onboarding Form 
+Interns are created through a dedicated multi-step onboarding form at /InternOnboarding. The form 
+collects the following data grouped into logical sections: 
+ 
+6.3a Intern Onboarding Form — Fields 
+Section 
+Fields Collected 
+Personal Details 
+Employee ID, Full Name, Email, Phone, Aadhar Number, Gender, Date 
+of Birth, Photo upload 
+Academic Details 
+Registration Number, Location, College Name, Degree, College 
+Department, Year of Passing 
+Internship Details 
+Start Date, End Date, Shift Timing, Scheme (Free / Paid / Stipend), 
+Department, Domain, Terms agreement 
+ 
+6.3 Onboarding Approval Flow 
+12. Intern submits form → status: Pending. 
+13. Manager reviews Onboarding List (GET /Sims/onboarding/list/). 
+14. Manager enables account (POST /Sims/onboarding/enable/{responseId}/). 
+15. Manager sends credentials (POST /Sims/onboarding/send_credentials/{internId}/). 
+16. Status → Active. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 10 of 77 
+ 
+6.4 Intern Onboarding Approval 
+Managers review pending onboarding submissions at the Onboarding List page (/admin/interns or 
+OnboardingList.js). The approval flow: 
+17. Intern submits onboarding form → status becomes Pending. 
+18. Manager views the Onboarding List: GET /Sims/onboarding/list/. 
+19. Manager enables the account: POST /Sims/onboarding/enable/{responseId}/. 
+20. Manager sends credentials to intern: POST /Sims/onboarding/send_credentials/{internId}/. 
+21. Intern status moves to Onboarded / Active. 
+ 
+6.5 Profile Updates 
+Interns can request profile updates which go through an approval workflow: 
+22. Intern submits update request via POST /Sims/submit-personal-update/. 
+23. Manager sees pending requests via GET /Sims/profile-update-request/. 
+24. Manager approves (POST /Sims/approve-profile/{pk}/) or rejects (POST /Sims/reject-
+profile/{pk}/). 
+ 
+6.6 Bulk Operations 
+• 
+CSV bulk import of interns with field mapping, validation, duplicate detection, and error log 
+• 
+Bulk intern status updates (e.g., mark batch as completed at term end) 
+• 
+Bulk task assignment to a cohort of interns 
+• 
+Bulk asset issue to a batch of onboarding interns 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 11 of 77 
+7. Intern Lifecycle 
+State 
+Description & Trigger 
+yettojoin 
+Registered but start date not yet reached. 
+active / inprogress 
+Actively doing the internship. Default after onboarding approval. 
+onleave 
+Approved leave covers today. Reflected in attendance calculations. 
+completed 
+Internship duration ended or marked complete by Manager/Lead. Archived from 
+active lists. 
+discontinued 
+Dropped or terminated. Removed from active operations. Data retained. 
+ 
+7.1 Lifecycle States 
+State 
+Description & Trigger 
+yettojoin 
+Registered but start date not yet reached. Appears in the 'Yet to Join' count on 
+the Admin Dashboard. 
+active / inprogress 
+Actively doing the internship. Default state after onboarding approval. Intern can 
+check in, access tasks, submit leaves. 
+onleave 
+Intern has an approved leave that covers today. Automatically reflected in 
+attendance calculations. 
+completed 
+Internship duration ended or marked as completed by Manager/Lead. Intern is 
+archived from active lists. 
+discontinued 
+Intern dropped or terminated before completion. Removed from active 
+operations. Data retained. 
+ 
+7.2 Promotion Pathway 
+Free  →  Paid  →  Stipend  →  Employee  →  Mentor / Lead 
+Each promotion is recorded with date, performance basis, and the approving Manager or Lead. 
+Promotion history is visible on the intern profile. 
+ 
+7.3 Intern Status Counts on Admin Dashboard 
+The Admin Dashboard (GET /Sims/admin/dashboard-summary/) aggregates intern counts in real 
+time: 
+• 
+Total Interns — all non-deleted intern records 
+• 
+Active — status is inprogress or active 
+• 
+Completed — status is completed 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 12 of 77 
+• 
+Yet to Join — status is yettojoin 
+• 
+On Leave — status is onleave 
+• 
+Discontinued — status is discontinued 
+ 
+7.4 Activity Timeline 
+Every intern has a chronological event feed showing: check-ins, task status changes, leave 
+applications, feedback received, document uploads, payments, promotions, and AI tool usage. 
+Accessible to Mentor and above. 
+ 
+7.5 Archive & Recovery 
+Completed/discontinued interns are soft-deleted — all records (tasks, attendance, payments, 
+feedback, documents) are retained. Authorized roles can restore from the Recovery page. 
+Permanent purge is a separate Manager/Super Admin action. 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 13 of 77 
+8. Attendance & Time Tracking 
+8.1 Check-in / Check-out (Intern View) 
+From the intern dashboard (Dash.js), the intern has a real-time attendance widget: 
+25. Intern clicks Check-in → POST /Sims/attendance/live-on/ → timestamp recorded. 
+26. Intern can start a break → POST /Sims/attendance/break-start/. 
+27. Intern ends break → POST /Sims/attendance/break-end/ — break time excluded from effective 
+hours. 
+28. Intern clicks Check-out → POST /Sims/attendance/live-off/ → system calculates total login 
+hours. 
+All timestamps are stored in UTC and displayed in the user's local timezone. Total login hours per 
+day are computed by the backend. 
+ 
+8.2 Attendance Dashboard (Staff Views) 
+View 
+Description 
+Dashboard 
+Overview: total present today, attendance %, on-leave count. Date-
+filterable. 
+Daily Attendance 
+Table of all interns: check-in/out times, total hours, status 
+(Present/Absent/On Leave). 
+Attendance Log 
+Date-range filtered log. GET /Sims/attendancedaterange/ and 
+/Sims/simpleattendancedata/. 
+Leave List 
+All leave requests with status filter. Staff can approve or reject. 
+Attendance Claims 
+Intern correction requests. Staff approves or rejects with reason. 
+ 
+8.3 Leave Management 
+Intern: Apply for Leave 
+29. Select leave type, start date, end date, reason → POST /Sims/attendances/leave_request/. 
+30. Leave appears in history: GET /Sims/attendances/leave_history/. 
+Staff: Approve/Reject Leave 
+31. View pending: GET /Sims/attendances/leave_approval/. 
+32. Approve or reject: PATCH /Sims/attendances/leave_approval/{leaveId}/ with status and 
+comment. 
+33. Leave days deducted from attendance % calculation. 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 14 of 77 
+8.4 Attendance Claims (Correction Requests) 
+34. Intern submits a claim for a date where attendance was not recorded: POST /Sims/attendance-
+claims/. 
+35. Staff reviews: GET /Sims/attendance-claims/pending-approval/. 
+36. Staff approves (POST .../approve/) or rejects with reason (POST .../reject/). 
+ 
+8.5 Intern Hours Calculator 
+A dedicated Hours Calculator page (InternHoursCalculator.js) at /intern-user/hours-calculator allows 
+interns and staff to compute total effective working hours over any date range, broken down by day, 
+with leave days clearly separated from worked hours. 
+ 
+8.6 Attendance Analysis 
+GET /Sims/attendanceanalysis/ provides aggregated attendance statistics used by dashboards and 
+performance metric calculations. GET /Sims/attendancedaterange/ supports date-range filtered 
+views. These endpoints power the attendance charts on the Attendance Dashboard and the Admin 
+Dashboard summary. 
+ 
+8.7 Shift Configuration 
+• 
+Entity-level shift definitions (morning, evening, standard) configured by Manager in Settings 
+• 
+Each intern assigned a shift_timing at onboarding 
+• 
+Late-mark and half-day rules computed based on assigned shift and check-in timestamp 
+• 
+Flexible shift support for entities with non-standard working hours 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 15 of 77 
+9. Task & Project Management 
+9.1 Task Dashboard Views 
+View 
+Purpose 
+Tasks Dashboard 
+Overview: counts by status, monthly trend chart, distribution donut, due-
+today list. 
+Task List 
+Full filterable table. Filters: project, status, priority, assignee, date range. 
+Bulk actions. 
+Projects 
+Project cards with status, team, task count. Full CRUD. 
+Project Status 
+Per-project detail: task breakdown, team members, progress bar, 
+milestones. 
+Teams 
+Team cards with interns and Mentor. Create/edit teams, assign/remove 
+interns. 
+Individual Task 
+Deep-dive: description, subtasks, status history, comments, file 
+attachments. 
+Departments 
+Department and domain hierarchy visualization. 
+User List 
+All users accessible from task context. 
+ 
+9.2 Task Data Model 
+Field 
+Description 
+Title / Description 
+Task name and detailed requirements. 
+Status 
+To Do → In Progress → Completed. 
+Priority 
+Low / Medium / High — color-coded badges. 
+Task Type 
+Learning / Project / Custom. 
+Assigned To 
+Responsible intern or staff member. 
+Project 
+Parent project FK. 
+Due Date / 
+Committed Date 
+Deadline for SLA calculation and escalation sorting. 
+Progress 
+0–100%. Set to 100% when Completed. 
+blocked_by 
+FK to prerequisite task — dependency guard on status transition. 
+sla_hours 
+SLA time window in hours. 
+Subtasks 
+Child tasks with own status. 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 16 of 77 
+9.3 Task Creation Flow 
+37. Lead or Mentor opens 'Create Task' from the Task List view (CreateTaskDialog.js). 
+38. Fills in title, description, project, assigned intern/staff, priority, due date, and task type. 
+39. Optionally adds subtasks inline. 
+40. Submits → POST /Sims/tasks/. 
+41. Task appears in the Task List and on the assigned intern's dashboard. 
+42. Intern receives an in-app notification of the new assignment. 
+Bulk project task creation: The TaskManagerCreation component allows creating multiple tasks for 
+a project at once via a spreadsheet-style grid interface. 
+ 
+9.4 Task Status Flow 
+To Do  →  In Progress  →  Completed (Pending Review)  →  Verified 
+Intern marks task done → enters completion review queue → Mentor/Lead verifies via GET 
+/Sims/completion-review/. PATCH /Sims/tasks/{pk}/update-status-auto-next/ moves to next status. 
+ 
+9.5 Task Dependency & SLA 
+• 
+Blocked-by linking: task cannot move to In Progress until all prerequisite tasks are Completed 
+• 
+SLA deadline fields with visual yellow warning (approaching) and red breach indicator 
+• 
+Auto-escalation engine: overdue task notifies intern → if unresolved, escalates to Mentor → 
+Lead → Manager, each after a configurable delay 
+• 
+Inactivity detection: intern with no check-in or task activity within configurable timeout triggers 
+alert chain 
+ 
+9.6 Project Management 
+Projects group related tasks and team members. Project operations: 
+• 
+Create project: POST /Sims/projects/ — set name, description, domain, start/end dates 
+• 
+Assign team to project: POST /Sims/projects/{pk}/assign-team/ 
+• 
+Assign team lead: POST /Sims/projects/{pk}/assign-team-lead/ 
+• 
+Project Dashboard: GET /Sims/projects/dashboard/ — aggregated stats per project 
+• 
+Team Lead view: GET /Sims/team-lead/projects/ — projects visible to the current team lead 
+ 
+9.7 Team Management 
+Teams are managed from the Teams view within the Task Dashboard: 
+• 
+Create team: POST /Sims/teams/ — assign a Mentor as team lead 
+• 
+Assign interns to team: POST /Sims/teams/{teamId}/assign-interns/ 
+• 
+Remove intern from team: POST /Sims/teams/{teamId}/remove-intern/ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 17 of 77 
+• 
+Available interns (not yet in a team): GET /Sims/teams/available-interns/ 
+• 
+Team interns page (TeamInternsPage.js): lists all interns in a specific team with status 
+ 
+9.8 Intern Task View (Self) 
+From the intern's own dashboard (Dash.js), the intern sees: 
+• 
+Task cards for all their assigned tasks grouped by status (To Do, In Progress, Completed) 
+• 
+Due-today tasks highlighted at the top via GET /Sims/tasks/due-today/ 
+• 
+Ability to update task status and progress on each card 
+• 
+Subtask management within each task card 
+• 
+Weekly performance stats via GET /Sims/tasks/weekly-performance/ 
+• 
+Monthly task count trend via GET /Sims/tasks/monthly-count/ 
+ 
+9.9 Project & Team Management (Combined) 
+• 
+Project CRUD: POST /Sims/projects/ — assign team (POST .../assign-team/) and team lead 
+(POST .../assign-team-lead/) 
+• 
+Team CRUD: POST /Sims/teams/ — assign interns (POST .../assign-interns/), remove intern 
+(POST .../remove-intern/) 
+• 
+Bulk project task creation via spreadsheet-style grid (TaskManagerCreation component) 
+• 
+Gantt chart view for project task planning with dependency visualization 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 18 of 77 
+10. Learning / Training Phase 
+A dedicated pre-project phase isolated from active project work. Learning tasks do not count 
+towards project productivity KPIs but are tracked separately for intern progress. 
+ 
+10.1 Purpose 
+• 
+Provide structured onboarding education before assigning project tasks 
+• 
+Allow Mentors to assign practice exercises and reading material without affecting KPIs 
+• 
+Give Leads and Managers visibility into how quickly interns progress through the learning 
+curriculum 
+ 
+10.2 Learning Task Flow 
+43. Mentor assigns learning tasks (Task Type = Learning) to a new intern. 
+44. Intern accesses dedicated Learning section in their dashboard — separate from project tasks. 
+45. Intern works through materials and marks each learning task complete. 
+46. Mentor monitors progress (% completion) on their Intern Management Dashboard. 
+47. Mentor marks learning phase complete → intern transitions to Active project status. 
+ 
+10.3 Learning Path Assignment 
+Mentors can assign an ordered sequence of learning tasks as a learning path. Sequential 
+dependencies are enforced — task N+1 unlocks only after task N is completed. Interns cannot skip 
+ahead. 
+ 
+10.4 AI-Enhanced Learning (see Section 15.3) 
+AI features overlay onto the learning phase: skill gap analysis, personalized learning path 
+recommendations, auto-generated practice quizzes, and AI-powered concept explanations 
+triggered from within learning tasks. 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 19 of 77 
+11. Payment & Stipend Management 
+11.1 Payment Types 
+Type 
+Description 
+Free 
+No stipend. Intern does not receive payment. Fee structure may apply (intern 
+pays). 
+Paid 
+Fixed payment set by Manager at onboarding or after promotion. 
+Stipend 
+Performance-based. Amount may vary based on attendance and task 
+completion metrics. 
+ 
+11.2 Payroll Dashboard Views 
+• 
+Dashboard: Summary cards (total, pending, completed, overdue). Payment trend chart. 
+• 
+Payment Management: Full table of all intern payment records. Filter by status, payment 
+method. Search by intern name. 
+• 
+My Profile: Staff profile within the payroll context. 
+ 
+11.3 Payment Record Operations 
+• 
+View payment details: GET /Sims/fees/{empId}/ — per-intern payment record 
+• 
+Create payment record: POST /Sims/fees/ 
+• 
+Update payment record: PATCH /Sims/fees/{pk}/ — update amount, mode, status 
+• 
+Fee structures: GET/POST /Sims/fee-structure/ — configurable payment tiers 
+ 
+11.4 Payment Approval Workflow 
+Cash payments require additional approval: 
+48. Lead or Manager marks a payment as Cash mode. 
+49. Payment enters a Pending Approval state. 
+50. Manager reviews and approves or rejects the cash payment record. 
+51. Approved payments are marked as Paid. All changes are logged with old/new values. 
+ 
+11.5 Intern Payment View (Self) 
+Interns can view their own payment status from the Payment Status page (PaymentStatusPage.js) 
+at /intern-user/payment-status. They can see: payment type, amount, status (Paid / Pending / 
+Overdue), and payment mode. Interns cannot edit payment records. 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 20 of 77 
+11.6 Payment Cycle Configuration 
+• 
+Payment cycle configuration: weekly, bi-weekly, monthly per entity 
+• 
+Payment history versioning: all edits logged with old/new values and timestamps 
+• 
+Fee structure configuration: tiered structures per entity for different intern schemes 
+ 
+11.3 Intern Payment View (Self) 
+Read-only view of payment type, amount, status (Paid/Pending/Overdue), and payment mode. 
+Interns cannot edit payment records. 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 21 of 77 
+12. Asset Management 
+12.1 Asset Dashboard 
+The Asset Dashboard (/asset/*) gives staff full visibility over all physical assets. Views include: 
+Dashboard (counts, trend chart, type distribution), Asset Management (full CRUD table), Intern 
+Status (which interns hold which assets), and Asset Reports (history, issue log). 
+ 
+12.2 Asset Data Model 
+• 
+Asset Code — unique identifier (used for lookup: GET /Sims/asset-lookup/{code}/) 
+• 
+Asset Type — Laptop, ID Card, Accessories, etc. 
+• 
+Serial Number — physical serial number 
+• 
+Condition — Good, Damaged, Lost 
+• 
+Status — Available, Assigned, Damaged, Lost 
+• 
+Assigned To — intern or staff emp_id 
+• 
+Issue Date and Expected Return Date 
+ 
+12.3 Asset Lifecycle Flow 
+52. Manager creates asset record (asset code, type, serial number, condition): POST /Sims/assert-
+stock/. 
+53. Asset assigned to intern with issue date and expected return date: PATCH /Sims/assert-
+stock/{pk}/. 
+54. If damage/loss: POST /Sims/assert-issue/ — issue report created. 
+55. Replacement asset lookup: GET /Sims/assert-issue/{pk}/replacement-assets/. 
+56. New asset assigned as replacement: POST .../assign-new-asset/. 
+57. On return: condition verified by Manager before record closes. 
+58. Full audit history: GET /Sims/asserthistory/ and /Sims/assertuserhistory/. 
+ 
+12.4 Asset Dashboard Views 
+View 
+Description 
+Dashboard 
+Total/available/assigned/damaged/lost counts. Monthly trend chart. 
+Type distribution. 
+Asset Management 
+Full table: filter by type, status. Create/edit/delete. Assign and return. 
+Intern Status 
+Which interns have which assets currently assigned. 
+Asset Reports 
+Assignment history, issue log, expected returns. 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 22 of 77 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 23 of 77 
+12.5 Intern Asset View (Self) 
+Interns can view their own assigned assets and report issues via the Asset Report page (/intern-
+user/asset-report). They can submit issue reports (POST /Sims/assert-issue/) but cannot modify 
+asset records directly. 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 24 of 77 
+13. Document Management 
+13.1 Document Types 
+• 
+Offer Letter, NDA (Non-Disclosure Agreement), Resume/CV, ID Proof, Educational Certificates, 
+Other entity-required documents 
+ 
+13.2 Document Upload Flow (Intern) 
+59. Intern logs in and navigates to Document View (/intern-user/documents). 
+60. Clicks upload for a required document type. 
+61. Selects file (PDF, JPG, PNG) and uploads: POST /Sims/documents/. 
+62. Document status becomes 'Pending Review'. 
+63. Intern sees uploaded vs pending status for each document type. 
+ 
+13.3 Document Approval Flow (Staff) 
+64. Staff accesses the Intern Approval Dashboard (/intern/approval-dashboard) or the Approve 
+Dashboard (ApproveDashboard.js). 
+65. GET /Sims/intern-approval-dashboard/ returns all interns with pending document counts. 
+66. Staff clicks on an intern to view uploaded documents. 
+67. For each document: Approve (POST /Sims/approve-document/{pk}/) or Reject with comments 
+(POST /Sims/reject-document/{pk}/). 
+68. Rejected documents must be re-uploaded by the intern. 
+69. Approved documents are locked and versioned — re-uploads create a new version. 
+ 
+13.4 Document Storage 
+Files are stored in entity-scoped folders: entity/{entityID}/interns/{internID}/documents/. Documents 
+can be downloaded via GET /Sims/documents/{pk}/download/ (returns blob). File type and size 
+validation is enforced on upload (allowed types: PDF, JPG, PNG). 
+ 
+13.3 AI-Enhanced Document Features (see Section 15.4 & 15.5) 
+The AI layer provides automatic resume parsing and evaluation, resume builder assistance, and 
+document completeness checking integrated directly into the document upload flow. 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 25 of 77 
+14. Feedback & Performance Evaluation 
+14.1 Feedback Types 
+Type 
+Description 
+Mentor Feedback 
+Periodic qualitative feedback + numeric scores on performance, attitude, 
+and progress. 
+Lead Evaluation 
+Overall evaluation determining final outcome (Selected / Not Selected). 
+Public Feedback Form 
+Shareable link form sent to external stakeholders about an intern or project. 
+Student-to-Staff 
+Feedback 
+Interns submit feedback about their Mentor/Lead (/intern-user/staff-
+feedback). 
+ 
+14.2 Feedback Submission Flow 
+70. Mentor opens Performance Feedback page (/intern/feedbacks or 
+PerformanceFeedbackPage.js). 
+71. Selects intern and fills in the feedback form: qualitative notes, scores, and recommendation. 
+72. Submits: POST /Sims/feedback/. 
+73. Feedback is visible in PerformanceFeedbackList.js to the Lead and Manager. 
+74. Interns can view their own feedback outcomes (configurable visibility). 
+ 
+14.3 Auto-Calculated Performance Metrics 
+Metric 
+Formula 
+Source 
+Attendance % 
+(Present Days / Working 
+Days) × 100 
+Attendance records 
+Task Completion Rate 
+Completed Tasks / Total 
+Assigned 
+Task records 
+Effective Hours Ratio 
+Task Timer Hours / Total 
+Login Hours 
+Attendance + task timers 
+Quality Rating 
+Avg of all Mentor + Lead 
+feedback scores 
+Feedback records 
+Learning Completion % 
+Completed Learning 
+Tasks / Total Assigned 
+Learning task records 
+ 
+14.4 Performance Page (Intern View) 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 26 of 77 
+The intern can view their own performance dashboard from /intern-user/performance-feedback. 
+This page (PerformancePage.js) shows: 
+• 
+Monthly attendance trend (line chart) 
+• 
+Weekly task completion trend (bar chart) 
+• 
+Current performance metrics (doughnut / circular progress bars) 
+• 
+Recent feedback entries from Mentors 
+• 
+Final evaluation outcome (Selected / Not Selected) when published by Lead 
+These metrics are surfaced via GET /Sims/performance/, GET /Sims/api/intern/monthly-
+performance/, and GET /Sims/tasks/weekly-performance/. 
+ 
+14.5 Forms & Surveys Module 
+A standalone forms builder (/intern/forms) allows staff to create custom feedback forms and 
+surveys: 
+• 
+Question types supported: text, textarea, radio, checkbox, dropdown, email, phone, rating (1–5 
+stars), yes/no 
+• 
+Forms can be organized into sections with section titles 
+• 
+A shareable public link (/feedback/{formId}) can be sent to external respondents 
+• 
+Form responses are collected and visualized in FormResponses.js and FormAnalytics.js 
+• 
+Banners can be uploaded per form (POST /api/forms/{formId}/upload_banner/) 
+• 
+Consult flag: staff can mark a response for team discussion (PATCH 
+/api/responses/{responseId}/consult/) 
+• 
+Comments can be added to individual responses (POST 
+/api/responses/{responseId}/comments/) 
+ 
+14.6 Forms Builder 
+• 
+Question types: text, textarea, radio, checkbox, dropdown, email, phone, rating (1–5 stars), 
+yes/no 
+• 
+Forms organized into sections with section titles 
+• 
+Shareable public link (/feedback/{formId}) for external respondents 
+• 
+Form response analytics and consult flag (mark response for team discussion) 
+• 
+Comments on individual responses: GET/POST /api/responses/{responseId}/comments/ 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 27 of 77 
+15. AI Features — Complete Specification 
+SIMS integrates a dedicated AI layer backed by the Anthropic Claude API (claude-sonnet-4-5 
+model). All AI features communicate via a secured /ai/ endpoint namespace using the same token 
+authentication as the rest of the system. The AI layer is context-aware — every request includes the 
+intern's profile, domain, metrics, and relevant history so the model can give personalized, data-
+grounded responses. 
+ 
+AI Architecture Principles 
+• 
+Every AI call includes the user's context (role, domain, metrics, recent history) as system 
+context 
+• 
+Responses are streamed where real-time output improves UX (chatbot, interview feedback, 
+resume suggestions) 
+• 
+AI-generated content is always presented as a suggestion — the user can accept, edit, or 
+discard 
+• 
+All AI interactions are logged for audit and to allow Mentors/Managers to review AI 
+recommendations 
+• 
+AI features are role-scoped: interns can access coaching tools; managers access analytics 
+and insights 
+• 
+Sensitive data (salary, personal IDs) is never sent to the AI layer — only performance and 
+task data 
+ 
+15.1 SIMS AI Chatbot Assistant 
+The AI chatbot is the central conversational interface within SIMS. It exists on the intern dashboard 
+(already partially built with rule-based logic), and is upgraded to a full LLM-powered assistant 
+backed by the Claude API. It supports voice input (Web Speech API, already implemented) and 
+voice output (Speech Synthesis, already implemented). 
+ 
+  🤖  AI Chatbot Assistant 
+Who uses it: Intern (primary) — also available in limited form to Mentor and Manager 
+What it does: Answers questions about attendance, tasks, leaves, performance, payments, and 
+general SIMS navigation. Provides guidance, encouragement, and contextual help. Can navigate 
+the app on the user's behalf. 
+How it works: User message + context (role, current metrics, recent tasks, leave balance, 
+attendance %) is sent to Claude API. Response is streamed back and displayed in the chat window. 
+Voice input via browser SpeechRecognition API; voice output via SpeechSynthesis. Chat history is 
+maintained per session. 
+API endpoint(s): POST /ai/chat/  |  GET /ai/chat/history/ 
+ 
+Chatbot Capabilities 
+• 
+Answer natural language questions: 'How many leaves do I have left?', 'What tasks are due 
+today?', 'What is my attendance percentage this month?' 
+• 
+Navigate the app: 'Take me to my tasks', 'Show my payment status', 'Open leave management' 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 28 of 77 
+• 
+Provide guidance: 'How do I apply for leave?', 'What does SLA mean?', 'Explain my performance 
+rating' 
+• 
+Motivation and coaching: detect low performance context and provide encouragement and 
+actionable tips 
+• 
+Escalation awareness: if intern asks about an escalation alert, explain what it means and what to 
+do 
+• 
+Voice commands: full voice-in / voice-out interaction with push-to-talk mic button 
+• 
+Quick action chips: pre-built suggestion buttons shown after each response for common follow-
+ups 
+• 
+Multi-turn conversation with session history — remembers context within the session 
+ 
+Staff-Side Chatbot 
+• 
+Manager/Mentor can ask: 'Which interns have low attendance this week?', 'Summarize feedback 
+for [intern]' 
+• 
+Get quick summaries of dashboard data via natural language instead of navigating multiple 
+screens 
+• 
+Ask for report generation: 'Export attendance report for October' 
+ 
+15.2 AI Performance Analysis & Insights 
+Replaces and extends the static performance metrics page with AI-generated narrative analysis, 
+trend detection, and personalized recommendations. 
+ 
+  🤖  AI Performance Analysis 
+Who uses it: Intern (own analysis) + Mentor and Lead (all assigned interns) + Manager (entity 
+overview) 
+What it does: Generates a natural language performance report for each intern, highlighting 
+strengths, areas of concern, attendance patterns, task efficiency trends, and personalized 
+improvement recommendations. 
+How it works: Backend aggregates the intern's metrics (attendance %, task completion rate, 
+effective hours ratio, quality rating, feedback history, learning progress) and sends them to Claude 
+with a structured analysis prompt. Claude returns a narrative report with: Summary, Strengths, 
+Areas for Improvement, Trend Analysis, and Action Plan. Reports are cached for 24 hours. 
+API endpoint(s): POST /ai/performance-analysis/{empId}/  |  GET /ai/performance-report/{empId}/ 
+ 
+Analysis Output Sections 
+Section 
+Content 
+Executive Summary 
+2–3 sentence overview of the intern's overall performance standing. 
+Strengths 
+Specific, data-backed strengths with examples from task and 
+attendance records. 
+Areas for Improvement 
+Specific gaps with concrete suggestions — not generic advice. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 29 of 77 
+Section 
+Content 
+Attendance Analysis 
+Pattern detection: late check-ins, frequent short sessions, leave 
+clustering. 
+Task Efficiency Trend 
+Week-over-week task completion trend, quality trend, and speed 
+analysis. 
+Skill Development 
+Progress through domain-specific learning tasks and knowledge gaps 
+identified. 
+Risk Flags 
+AI flags: at-risk intern (low metrics + declining trend), overloaded intern 
+(too many tasks), disengaged intern (low hours despite availability). 
+Recommended Actions 
+Concrete next steps for the intern AND for the Mentor (e.g., 'Schedule 
+a 1:1 this week', 'Reassign 2 tasks to reduce load'). 
+ 
+AI Performance Scoring 
+AI computes a composite AI Performance Score (0–100) for each intern by weighting the four auto-
+calculated metrics with domain-specific calibration. This score is displayed as the primary 
+performance indicator on dashboards. 
+Component 
+Weight 
+Notes 
+Attendance % 
+25% 
+Below 75% triggers risk flag regardless 
+of other scores 
+Task Completion Rate 
+30% 
+Adjusted for task difficulty if difficulty 
+tags are used 
+Effective Hours Ratio 
+20% 
+Low ratio with high login hours = 
+disengagement signal 
+Quality Rating (Feedback) 
+25% 
+Latest 3 feedback entries weighted 
+more than older ones 
+ 
+Comparative Analytics (Manager View) 
+• 
+Domain-level performance comparison: average scores across all interns in each domain 
+• 
+Cohort analysis: this batch vs previous batches on same metrics 
+• 
+Top performer and at-risk intern identification with AI-generated reasoning 
+• 
+Mentor effectiveness: correlation between Mentor's feedback quality and intern performance 
+outcomes 
+ 
+15.3 AI Learning Path & Skill Gap Analysis 
+  🤖  AI Learning Path Generator & Skill Gap Analysis 
+Who uses it: Intern (receives plan) + Mentor (reviews and approves plan) 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 30 of 77 
+What it does: Analyzes the intern's domain, completed learning tasks, quiz scores, and task 
+performance to identify skill gaps and auto-generate a personalized learning path with specific 
+resource recommendations. 
+How it works: Intern's domain, completed/pending learning tasks, task performance data, and 
+optionally the intern's resume skills are sent to Claude. Claude returns: a skill gap assessment 
+mapped to the domain's required competencies, a prioritized learning path with estimated time per 
+module, and resource type recommendations (read, watch, practice). Mentor can approve, edit, or 
+regenerate the plan. 
+API endpoint(s): POST /ai/learning-path/generate/{empId}/  |  GET /ai/learning-path/{empId}/  |  
+PATCH /ai/learning-path/{empId}/ 
+ 
+AI Learning Features 
+• 
+Skill Gap Report: maps intern's current skills (from resume + completed tasks) against domain 
+competency framework 
+• 
+Personalized Learning Path: ordered list of learning modules tailored to the intern's gaps and 
+learning pace 
+• 
+Auto-generated Practice Quizzes: Claude generates MCQ/short-answer quizzes from learning 
+task content on demand 
+• 
+Concept Explainer: intern can highlight any term in a task description and ask AI to explain it in 
+simple terms 
+• 
+Learning Pace Detection: AI detects if intern is moving too slowly and alerts Mentor, or moving 
+very fast and suggests advanced topics 
+• 
+Domain Readiness Score: AI scores how 'project-ready' an intern is based on learning progress 
+and quiz performance 
+ 
+15.4 AI Resume Evaluation 
+  🤖  AI Resume Evaluator 
+Who uses it: Intern (self-evaluation and improvement) + Manager/Lead (candidate screening during 
+onboarding) 
+What it does: Parses and evaluates the intern's uploaded resume against the domain they are 
+applying for or currently working in. Provides a structured score, identifies gaps, and gives specific, 
+actionable improvement suggestions. 
+How it works: Intern uploads resume (PDF/DOCX). Backend extracts text and sends it to Claude 
+along with the target domain competency framework. Claude returns: ATS compatibility score, 
+section-by-section evaluation (Summary, Experience, Skills, Education, Projects), domain relevance 
+score, missing keywords list, and a rewrite suggestion for weak sections. 
+API endpoint(s): POST /ai/resume/evaluate/  |  GET /ai/resume/evaluation/{empId}/  |  POST 
+/ai/resume/evaluate-for-domain/{domain}/ 
+ 
+Resume Evaluation Output 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 31 of 77 
+Evaluation Component 
+Details 
+Overall Score (0–100) 
+Composite of ATS compatibility, relevance, completeness, and 
+formatting. 
+ATS Compatibility Score 
+Keyword density, formatting issues that fail ATS parsers, section 
+headers check. 
+Domain Relevance Score 
+How well skills and experience match the target domain (e.g., Full 
+Stack, ML, DevOps). 
+Section Scores 
+Individual scores for: Summary/Objective, Skills, Experience/Projects, 
+Education, Certifications. 
+Missing Keywords 
+Domain-specific keywords and tools that are absent from the resume. 
+Formatting Issues 
+Font consistency, spacing, length (ideal: 1 page for fresher), use of 
+action verbs. 
+Improvement Suggestions 
+Specific, per-section rewrites — not generic advice. E.g., 'Rewrite this 
+bullet with a measurable outcome.' 
+Strengths Identified 
+What the resume does well — important for intern confidence 
+alongside critique. 
+ 
+Manager Use: Candidate Screening 
+• 
+During onboarding approval, Manager or Lead can trigger AI evaluation of uploaded resume 
+against the assigned domain 
+• 
+AI provides a domain fit score and highlights strengths/gaps — helps Mentor plan the learning 
+path immediately 
+• 
+Multiple resumes can be batch-evaluated for cohort onboarding 
+ 
+15.5 AI Resume Builder 
+  🤖  AI Resume Builder / Generator 
+Who uses it: Intern 
+What it does: Helps interns build a professional, domain-optimized resume from scratch or improve 
+an existing one. Generates tailored resume content based on the intern's profile, tasks completed, 
+skills, and internship achievements recorded in SIMS. 
+How it works: The AI has access to the intern's SIMS data: tasks completed (with descriptions), 
+attendance record, learning path completed, domain, performance metrics, and any skills the intern 
+manually inputs. Claude generates professional resume content for each section, formatted as 
+ready-to-use text. The intern can refine any section in a chat-like interaction. Final resume can be 
+exported as a PDF. 
+API endpoint(s): POST /ai/resume/generate/{empId}/  |  POST /ai/resume/section/{section}/  |  
+POST /ai/resume/export/{empId}/ 
+ 
+Resume Builder Sections & AI Capabilities 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 32 of 77 
+Resume Section 
+AI Capability 
+Professional Summary 
+Generates a 3–4 line professional summary based on domain, internship 
+duration, and key achievements from SIMS task data. 
+Skills Section 
+Auto-populates technical and soft skills based on: domain, completed 
+learning tasks, task tags, and manual skill input. 
+Internship Experience 
+Converts completed SIMS tasks and projects into professional bullet 
+points with action verbs and measurable outcomes (e.g., task completion 
+rate, hours, project names). 
+Projects Section 
+Generates project descriptions from SIMS project data: project name, 
+role, technologies used, outcome. 
+Education 
+Populated from intern's academic details (college, degree, year) stored in 
+SIMS. 
+Achievements / 
+Certifications 
+Populated from SIMS certificates generated (completion, task, 
+attendance). 
+Keyword Optimization 
+AI inserts domain-relevant keywords to improve ATS performance 
+without making the resume feel keyword-stuffed. 
+Tone & Style Adjustment 
+Intern can specify: fresher / experienced, formal / modern, concise / 
+detailed — AI adjusts writing style accordingly. 
+ 
+Resume Iteration Flow 
+75. Intern opens Resume Builder from their dashboard (/intern-user/resume-builder). 
+76. AI pre-fills all sections using SIMS data. Intern reviews each section. 
+77. Intern can click 'Improve this section' on any section — AI provides alternative versions. 
+78. Intern can type custom instructions: 'Make the summary more confident', 'Add more technical 
+keywords'. 
+79. Intern exports final resume as PDF: POST /ai/resume/export/{empId}/ — server-side PDF 
+generation. 
+80. Resume is saved in SIMS document storage and can be replaced in the Documents section. 
+ 
+15.6 AI Mock Interview 
+  🤖  AI Mock Interview 
+Who uses it: Intern 
+What it does: Provides a fully interactive mock interview experience. The AI acts as an interviewer, 
+asking domain-relevant technical and behavioral questions, evaluating answers in real time, and 
+providing detailed feedback at the end. 
+How it works: Intern selects interview type and domain. Claude generates a structured interview 
+session (intro → technical questions → behavioral questions → scenario questions → closing). 
+Each intern answer is evaluated by Claude immediately with a score and short feedback. At the end, 
+a comprehensive interview report is generated with overall score, per-question breakdown, 
+confidence assessment, and improvement plan. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 33 of 77 
+API endpoint(s): POST /ai/interview/start/  |  POST /ai/interview/answer/{sessionId}/  |  GET 
+/ai/interview/report/{sessionId}/  |  GET /ai/interview/history/{empId}/ 
+ 
+Interview Types 
+Interview Type 
+Description 
+Technical — Domain 
+Questions specific to the intern's domain: Full Stack (React, Django, 
+REST APIs), ML (Python, scikit-learn, model evaluation), DevOps 
+(CI/CD, Docker, Kubernetes), etc. 
+HR / Behavioral 
+Standard behavioral questions: STAR method answers, situational 
+judgment, team scenarios, conflict resolution. 
+Mixed (Technical + HR) 
+Combined session simulating a real interview: technical depth first, 
+then behavioral rounds. 
+Project-Based 
+Interview questions generated from the intern's actual SIMS projects 
+— 'Tell me about a challenging task in Project X'. 
+Company Preparation 
+Intern specifies a target company/role — AI tailors questions to that 
+company's known interview style and tech stack. 
+ 
+Interview Session Flow 
+81. Intern opens Mock Interview from dashboard (/intern-user/mock-interview). 
+82. Selects interview type, domain, difficulty (Beginner / Intermediate / Advanced), and duration (15, 
+30, 45 minutes). 
+83. AI introduces itself and starts the interview with an opening question. 
+84. Intern types (or speaks via voice input) their answer. 
+85. AI evaluates the answer instantly: score (1–10), brief immediate feedback, and asks the next 
+question. 
+86. Session proceeds for the configured duration or number of questions. 
+87. At end: AI generates a full Interview Report (see below). 
+88. Report saved to intern's AI history and visible to Mentor. 
+ 
+Interview Report 
+Report Section 
+Content 
+Overall Score 
+Aggregate score across all questions with percentile context (e.g., 
+'Better than 65% of interns in this domain'). 
+Question-by-Question 
+Breakdown 
+Each question, the intern's answer, AI score (1–10), and specific 
+feedback on what was good and what was missing. 
+Strengths Identified 
+Communication clarity, technical accuracy, problem-solving approach, 
+domain knowledge. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 34 of 77 
+Report Section 
+Content 
+Improvement Areas 
+Specific gaps: 'You didn't mention time complexity in algorithm 
+questions', 'STAR method answers lacked a clear Result step'. 
+Confidence Indicators 
+Response time analysis, completeness of answers, use of technical 
+terminology. 
+Recommended Study 
+Topics 
+Specific topics to study based on incorrect or incomplete answers. 
+Action Plan 
+3–5 specific things to practice before the next interview, with resource 
+suggestions. 
+ 
+Interview History & Progress Tracking 
+• 
+All past interview sessions stored with scores, dates, and domain 
+• 
+Score trend chart showing improvement across multiple sessions 
+• 
+Mentor can view intern's interview history and use it to inform feedback 
+• 
+Manager can see cohort-level interview readiness distribution 
+ 
+15.7 AI Smart Task Suggestions 
+  🤖  AI Smart Task Suggestions 
+Who uses it: Lead and Mentor (creating tasks) + Intern (self-assigning or creating optional tasks) 
+What it does: When a Lead or Mentor creates a task, AI suggests: task description improvements, 
+appropriate priority and SLA, subtask breakdown, relevant learning resources, and similar past 
+tasks for reference. For interns, AI can suggest additional practice tasks based on skill gaps. 
+How it works: When task creation dialog opens, AI analyzes the task title and project context, and 
+pre-fills description, suggested priority, estimated hours, and subtasks. Suggestions can be 
+accepted or ignored. AI also checks for dependency conflicts with existing tasks. 
+API endpoint(s): POST /ai/tasks/suggest/  |  POST /ai/tasks/decompose/  |  GET 
+/ai/tasks/similar/{taskId}/ 
+ 
+Task AI Capabilities 
+• 
+Description Generator: enter task title → AI generates a detailed professional task description 
+• 
+Task Decomposer: enter high-level task → AI breaks it into 3–7 specific, measurable subtasks 
+• 
+Priority Suggester: AI analyzes task type, project deadline, and intern workload to suggest 
+priority level 
+• 
+SLA Estimator: based on task type and domain, AI suggests a realistic SLA/due date 
+• 
+Similar Task Finder: find past tasks similar to the new one for reference and time estimation 
+• 
+Workload Balancer: when assigning, AI checks intern's current task load and flags overallocation 
+• 
+Auto-tagging: AI suggests domain and skill tags for the task enabling skill-based reporting 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 35 of 77 
+15.8 AI Attendance Anomaly Detection 
+  🤖  AI Attendance Anomaly Detection 
+Who uses it: Mentor and Manager (receives alerts) + Intern (receives personalized insights) 
+What it does: Automatically detects unusual attendance patterns and raises intelligent alerts — 
+beyond simple threshold checks. Identifies patterns like chronic late check-ins, gradual 
+disengagement, suspicious attendance clustering before deadlines, and predicts at-risk dropout. 
+How it works: The attendance analysis job runs daily. An ML/LLM analysis is applied to each 
+intern's 30-day attendance history. Claude identifies anomalies, classifies their likely cause (sick 
+pattern, Monday absenteeism, pre-deadline cramming, disengagement), and generates a natural 
+language summary for the Mentor. Severe patterns trigger automated escalation. 
+API endpoint(s): GET /ai/attendance/anomalies/  |  POST /ai/attendance/analyze/{empId}/  |  GET 
+/ai/attendance/risk-report/ 
+ 
+Anomaly Types Detected 
+• 
+Chronic Late Arrival: check-in consistently 30+ minutes late — AI differentiates from shift change 
+vs disengagement 
+• 
+Attendance Clustering: intern marks attendance only on task-due days — sign of selective 
+engagement 
+• 
+Gradual Decline: month-over-month attendance % declining — early warning before it becomes 
+a problem 
+• 
+Session Duration Anomaly: logged in for very short sessions (< 1 hour) repeatedly without 
+approved reasons 
+• 
+Absenteeism Pattern: recurring absences on same weekday — AI flags for manager awareness 
+• 
+Dropout Risk Score: composite score combining attendance trend + task completion trend + last 
+activity date 
+ 
+15.9 AI Feedback Writing Assistant 
+  🤖  AI Feedback Writing Assistant 
+Who uses it: Mentor and Lead (writing feedback) 
+What it does: Helps Mentors write high-quality, specific, data-backed feedback instead of vague 
+comments. AI drafts feedback based on the intern's actual metrics and task history, which the 
+Mentor can review, edit, and submit. 
+How it works: When Mentor opens the feedback form for an intern, AI pre-analyzes the intern's 
+performance data (attendance, task completion rate, quality scores, specific task outcomes) and 
+generates a draft feedback narrative. The draft is editable. Mentor can also request: 'Make this more 
+constructive', 'Add specific examples', or 'Write a final evaluation summary'. 
+API endpoint(s): POST /ai/feedback/draft/{empId}/  |  POST /ai/feedback/improve/  |  POST 
+/ai/feedback/final-evaluation/{empId}/ 
+ 
+Feedback AI Capabilities 
+• 
+Draft Generator: auto-generates a complete feedback entry from metrics and task data — 
+Mentor edits and submits 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 36 of 77 
+• 
+Tone Checker: flags feedback that is too vague ('good job'), too harsh (demotivating language), 
+or biased 
+• 
+Specificity Improver: 'Add a specific example from their work history to support this statement' 
+• 
+Final Evaluation Summary: AI generates the overall evaluation text (Selected/Not Selected 
+rationale) for Lead review 
+• 
+Consistency Checker: AI flags if this Mentor's feedback patterns are inconsistent with 
+performance metrics (e.g., positive feedback but low task scores) 
+ 
+15.10 AI Exit Summary & Career Readiness Report 
+  🤖  AI Exit Summary & Career Readiness Report 
+Who uses it: Intern (receives report at internship end) + Manager (reviews before certificate 
+generation) 
+What it does: At the end of the internship, AI generates a comprehensive exit summary that serves 
+both as an internal performance record and as a career readiness report the intern can use for job 
+applications. 
+How it works: Aggregates the intern's entire SIMS history: all tasks completed, attendance record, 
+learning path, feedback received, interview practice scores, resume quality score, and certifications. 
+Claude generates a structured exit report and a Career Readiness Score (0–100) with domain-
+specific context. 
+API endpoint(s): POST /ai/exit-report/{empId}/  |  GET /ai/exit-report/{empId}/  |  POST /ai/exit-
+report/{empId}/export/ 
+ 
+Exit Report Contents 
+• 
+Internship Overview: timeline, domain, projects worked on, team, Mentor 
+• 
+Performance Summary: all metrics with trend analysis across the full internship duration 
+• 
+Skills Acquired: AI-curated list of skills demonstrated through task completion and learning path 
+• 
+Key Achievements: top 3–5 accomplishments derived from task and project data 
+• 
+Interview Readiness: mock interview progress summary and current readiness level 
+• 
+Career Readiness Score (0–100): composite of performance metrics, skill development, and 
+interview practice 
+• 
+Recommended Next Steps: role suggestions, skills to develop, certifications to pursue 
+• 
+Exportable as PDF: designed for inclusion in intern's job application portfolio 
+ 
+15.11 AI Smart Search 
+  🤖  AI Smart Search 
+Who uses it: All roles 
+What it does: Global search that understands natural language queries — not just keyword 
+matching. Searches across interns, tasks, projects, assets, documents, and reports, with role-
+scoped results. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 37 of 77 
+How it works: The search query is processed by Claude to identify intent and extract entities. The 
+backend then performs a structured multi-entity search and returns ranked results. For ambiguous 
+queries, AI asks a clarifying question. 
+API endpoint(s): POST /ai/search/  |  GET /search/?q={query} 
+ 
+Search Examples 
+• 
+'Show interns with attendance below 80% in the ML domain this month' — structured report 
+query 
+• 
+'Find all overdue tasks assigned to Priya' — multi-entity filtered search 
+• 
+'Which projects are behind schedule?' — project status semantic query 
+• 
+'List interns who haven't uploaded their NDA' — document status query 
+• 
+'Show me feedback for interns completing their internship this month' — lifecycle-aware query 
+ 
+15.12 AI Onboarding Readiness Check 
+  🤖  AI Onboarding Readiness Check 
+Who uses it: Manager and Lead (reviewing new onboarding submissions) 
+What it does: When a new intern onboarding submission arrives, AI automatically checks 
+document completeness, flags missing required fields, evaluates the submitted resume for domain 
+fit, and provides a readiness score to help the Manager prioritize and process submissions faster. 
+How it works: Triggered when new onboarding submission is received. AI checks: all required 
+fields filled, all required documents uploaded, resume uploaded and evaluates domain fit, academic 
+background matches domain requirements. Returns a readiness checklist and domain fit score. 
+Manager can approve with one click for high-readiness interns. 
+API endpoint(s): POST /ai/onboarding/check/{submissionId}/  |  GET /ai/onboarding/readiness-
+report/{submissionId}/ 
+ 
+ 
+15.13 AI Natural Language Report Generator 
+  🤖  AI Report Generator 
+Who uses it: Manager and Lead 
+What it does: Generates any report from natural language requests. Manager types what they need 
+and AI queries the data, generates the report, and optionally exports it. 
+How it works: Manager inputs a report request in plain English. Claude parses the request, 
+identifies required data fields, calls the appropriate API endpoints, aggregates the data, and 
+generates a formatted narrative report with supporting tables and charts. Report can be exported as 
+PDF or Excel. 
+API endpoint(s): POST /ai/reports/generate/  |  GET /ai/reports/history/ 
+ 
+Example Report Requests 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 38 of 77 
+• 
+'Give me a performance summary for all interns in the Full Stack domain for Q3' 
+• 
+'Show me which interns are at risk of not completing their internship this month' 
+• 
+'Compare attendance rates between Morning and Evening shift interns' 
+• 
+'List all tasks that breached SLA in the last 30 days with assignees' 
+• 
+'Generate a Mentor effectiveness report showing feedback quality vs intern outcomes' 
+ 
+15.14 AI Notification Intelligence 
+The notification system is upgraded with AI prioritization and intelligent digest: 
+• 
+Smart Digest: instead of a flood of individual notifications, AI generates a concise daily digest: '3 
+tasks need your attention, 2 leave requests pending, 1 intern is at attendance risk' 
+• 
+Priority Classification: AI classifies incoming notifications as Critical, Attention, Informational — 
+surfacing the most important ones first 
+• 
+Noise Reduction: AI learns from notification dismissal patterns and reduces notification 
+frequency for low-priority event types the user consistently ignores 
+• 
+Contextual Summaries: for complex notifications (e.g., escalation alert), AI adds a 1-line context: 
+'This task has been overdue for 3 days and the intern has been inactive since Tuesday' 
+ 
+ 
+15.15 AI Feature API Reference 
+Endpoint 
+Method 
+Feature 
+/ai/chat/ 
+POST 
+AI Chatbot — send message, receive LLM 
+response 
+/ai/chat/history/ 
+GET 
+Chatbot session history for current user 
+/ai/performance-analysis/{empId}/ 
+POST 
+Generate AI performance analysis report 
+/ai/performance-report/{empId}/ 
+GET 
+Get cached performance report 
+/ai/learning-path/generate/{empId}/ 
+POST 
+Generate personalized AI learning path 
+/ai/learning-path/{empId}/ 
+GET / 
+PATCH 
+View or update AI learning path 
+/ai/quiz/generate/{taskId}/ 
+POST 
+Generate practice quiz from learning task 
+content 
+/ai/resume/evaluate/ 
+POST 
+Evaluate uploaded resume (file upload) 
+/ai/resume/evaluation/{empId}/ 
+GET 
+Get latest resume evaluation 
+/ai/resume/evaluate-for-
+domain/{domain}/ 
+POST 
+Evaluate resume against specific domain 
+/ai/resume/generate/{empId}/ 
+POST 
+Generate resume from SIMS data 
+/ai/resume/section/{section}/ 
+POST 
+AI-improve a specific resume section 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 39 of 77 
+Endpoint 
+Method 
+Feature 
+/ai/resume/export/{empId}/ 
+POST 
+Export AI-generated resume as PDF 
+/ai/interview/start/ 
+POST 
+Start mock interview session 
+/ai/interview/answer/{sessionId}/ 
+POST 
+Submit answer, receive AI evaluation 
+/ai/interview/report/{sessionId}/ 
+GET 
+Get full interview report 
+/ai/interview/history/{empId}/ 
+GET 
+All past interview sessions for intern 
+/ai/tasks/suggest/ 
+POST 
+AI task description and subtask suggestions 
+/ai/tasks/decompose/ 
+POST 
+Decompose task into subtasks 
+/ai/tasks/similar/{taskId}/ 
+GET 
+Find similar past tasks 
+/ai/attendance/anomalies/ 
+GET 
+Entity-level attendance anomaly report 
+/ai/attendance/analyze/{empId}/ 
+POST 
+Analyze individual intern attendance pattern 
+/ai/attendance/risk-report/ 
+GET 
+Dropout risk scores for all interns 
+/ai/feedback/draft/{empId}/ 
+POST 
+AI-draft feedback from performance data 
+/ai/feedback/improve/ 
+POST 
+Improve existing feedback text 
+/ai/feedback/final-evaluation/{empId}/ 
+POST 
+Generate final evaluation summary 
+/ai/exit-report/{empId}/ 
+POST / 
+GET 
+Generate or retrieve exit summary report 
+/ai/exit-report/{empId}/export/ 
+POST 
+Export exit report as PDF 
+/ai/search/ 
+POST 
+AI smart search across all entities 
+/ai/onboarding/check/{submissionId}/ 
+POST 
+AI onboarding readiness check 
+/ai/reports/generate/ 
+POST 
+Natural language report generation 
+/ai/reports/history/ 
+GET 
+Past generated reports 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 40 of 77 
+16. Certificate Generation 
+All certificates are generated server-side and returned as downloadable files. No manual formatting 
+required. 
+ 
+Certificate Type 
+Endpoint 
+Description 
+Completion Certificate 
+POST /Sims/generate-
+completion-certificate/ 
+Generated at end of internship. Confirms 
+successful completion with performance 
+summary. 
+Offer Letter 
+POST /Sims/generate-
+offer-letter/ 
+Formal internship offer letter at onboarding. 
+Task Certificate 
+POST /Sims/generate-
+task-certificate/ 
+Certifies completion of a specific project or 
+task. 
+Attendance Certificate 
+POST /Sims/generate-
+attendance-certificate/ 
+Certifies attendance record and percentage. 
+Partial Completion Certificate 
+POST /Sims/generate-
+partial-certificate/ 
+For interns who completed part of the 
+internship. 
+AI-Enhanced Completion 
+Certificate 
+POST /ai/exit-
+report/{empId}/export/ 
+Includes AI-generated Career Readiness 
+Report alongside traditional certificate 
+content. 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 41 of 77 
+16.1 Admin Dashboard Summary Data 
+The Admin Dashboard calls GET /Sims/admin/dashboard-summary/?date={YYYY-MM-DD} which 
+returns a single aggregated response containing: 
+• 
+intern_counts: total, active, completed, yet_to_join, on_leave, discontinued 
+• 
+attendance: pct (percentage present for the selected date) 
+• 
+payment_summary: completed, pending, overdue, free counts and amounts 
+• 
+dept_active_counts: array of {dept, count} for the department bar chart 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 42 of 77 
+17. Role-Based Dashboards 
+17.1 Admin Dashboard (/admin/*) 
+Route 
+Component 
+Purpose 
+/admin/dashboard 
+AdminDashboardContent 
+Summary: intern counts by status, 
+attendance %, payment summary, dept 
+distribution chart. Date-filterable. 
+/admin/user 
+StaffList 
+All staff: view, edit, deactivate. 
+/admin/interns 
+InternLists 
+All interns: status filter, CSV export, bulk 
+actions. 
+/admin/payments 
+PaymentList 
+Payment records for all interns. 
+/admin/departments 
+DepartmentManagement 
+Department and domain CRUD. 
+/admin/entities 
+EntityManagement 
+Entity, branch, entity-department CRUD. 
+/admin/feedback 
+PerformanceFeedbackPage 
+All feedback submissions. 
+/admin/teams 
+TeamManagement 
+Team creation and intern assignment. 
+/admin/register 
+RegisterPage 
+Register new staff members. 
+/admin/profile 
+AdminProfile 
+Admin profile management. 
+ 
+17.2 Intern Management Dashboard (/intern/*) 
+View 
+Description 
+dashboard 
+Summary cards, intern overview, AI risk flags for at-risk interns. 
+users 
+Intern table with status, domain, actions. AI performance badge per 
+intern. 
+documents 
+Document upload and approval per intern. 
+feedbacks 
+Feedback list with AI draft button. 
+forms 
+Form builder and response viewer. 
+approval-dashboard 
+Pending document approvals. 
+completionList 
+Task completion review queue. 
+ 
+17.3 Task Dashboard (/task/*) 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 43 of 77 
+View 
+Purpose 
+tasks 
+Overview: counts by status, monthly trend chart, due-today list, AI workload 
+insights. 
+task-list 
+Full table with filters, bulk actions, AI task suggestion button. 
+projects 
+Project cards. Create/edit. AI project health indicator. 
+project-status 
+Per-project detail: task breakdown, team, progress. Gantt view. 
+teams 
+Team composition and intern assignment. 
+departments 
+Department/domain hierarchy. 
+individual-task 
+Single task deep-dive with subtasks, comments, AI explain button. 
+ 
+17.4 Intern Self-Service Dashboard (/intern-user/*) 
+Sidebar Item 
+Component 
+What the Intern Can Do 
+Dashboard 
+Dash.js home 
+Check in/out, due tasks, announcements, 
+performance summary, AI chatbot. 
+Attendance 
+AttendanceManagement 
+Check in/out, breaks, attendance log. 
+Document View 
+DocumentView 
+Upload documents, view approval status. AI 
+resume evaluation. 
+Payment Status 
+PaymentStatusPage 
+Read-only payment view. 
+Asset Report 
+AssetReport 
+View assigned assets, submit issue reports. 
+Performance 
+PerformancePage 
+AI performance analysis, metrics, feedback. 
+Leave 
+LeaveManagement 
+Apply, view history, balance. 
+Tasks 
+Tasks 
+View/update own tasks. AI task explanation. 
+Hours Calculator 
+InternHoursCalculator 
+Calculate hours for any date range. 
+Staff Feedback 
+StudentStaffFeedback 
+Submit feedback about Mentor/Lead. 
+Teams 
+TeamsManagement 
+View team and Mentor. 
+Mock Interview 
+MockInterviewPage 
+AI mock interview sessions. (new page) 
+Resume Builder 
+ResumeBuilderPage 
+AI resume generator and evaluator. (new 
+page) 
+Learning 
+LearningPage 
+Learning path with AI quiz and explainer. 
+(new page) 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 44 of 77 
+17.5 Intern Profile (Staff View) 
+Clicking on any intern in any list opens the full intern profile (InternProfile.js) which shows: 
+• 
+Personal details, contact information, and photo 
+• 
+Academic details (college, degree, year of passing) 
+• 
+Internship details: domain, scheme, start/end dates, shift timing 
+• 
+Current lifecycle status with change capability 
+• 
+Documents list with upload/approve/reject actions 
+• 
+Offer letter and NDA status 
+• 
+Asset assignment status 
+• 
+Payment record summary 
+• 
+Quick links to task and attendance views for this intern 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 45 of 77 
+18. Notifications 
+18.1 Intern Dashboard Home 
+The dashboard home page shows: 
+• 
+Real-time check-in/check-out toggle with timer showing current session duration 
+• 
+Today's task list: due-today tasks with priority badges 
+• 
+Announcement board: team announcements from Mentors/Leads 
+• 
+Performance summary: circular progress bars for attendance%, task completion rate, quality 
+rating 
+• 
+Notification bell with unread count (in-app notifications) 
+• 
+Monthly attendance trend chart 
+• 
+Weekly task completion bar chart 
+• 
+AI chatbot floating button (bottom-right) with voice input/output 
+ 
+18.2 In-App Notifications 
+• 
+GET /Sims/notifications/ — fetch unread notifications for current user 
+• 
+PATCH /Sims/notifications/{id}/mark_read/ — mark single as read 
+• 
+POST /Sims/notifications/mark_all_read/ — mark all as read 
+• 
+Triggers: task assignment, status change, leave status, payment change, document 
+approval/rejection, attendance claim decision, escalation alerts, AI report ready 
+ 
+18.3 AI Notification Intelligence 
+• 
+Smart Digest: daily AI-generated summary instead of individual notification flood 
+• 
+Priority Classification: Critical / Attention / Informational auto-tagging 
+• 
+Contextual 1-line summaries on escalation and risk alerts 
+• 
+Noise Reduction: AI reduces low-priority notifications for users who consistently dismiss them 
+ 
+18.4 Email Notifications 
+• 
+Leave approved/rejected, document approved/rejected, task assigned, SLA warning, claim 
+decision, credentials sent 
+• 
+Per-user email notification toggle in Settings 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 46 of 77 
+18.5 Notification Preferences 
+Users can configure notification preferences in Settings (/Settings): 
+• 
+Email notifications toggle (on/off per account) 
+• 
+Push notifications toggle (on/off per account) 
+• 
+Specific event subscriptions configurable per notification type 
+• 
+AI notification digest preference: full list vs AI summary mode 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 47 of 77 
+19. Reporting & Analytics 
+19.1 Role-Based Dashboards Data 
+Dashboard 
+Key Metrics & Charts 
+Admin / Manager 
+Intern counts by status, attendance %, payment summary, active interns by 
+department, AI risk flags summary 
+Task Dashboard 
+Task counts by status, monthly completion trend, due-today list, AI workload 
+distribution 
+Attendance 
+Dashboard 
+Daily present/absent, leave summary, attendance %, anomaly alerts 
+Asset Dashboard 
+Total/available/assigned/damaged counts, monthly trend, type distribution 
+Payroll Dashboard 
+Payment totals by status, method breakdown, trend 
+Intern Self 
+AI performance score, attendance %, task rate, quality rating, monthly/weekly 
+trend charts 
+ 
+19.2 Data Export 
+• 
+CSV/Excel export from all major list views: interns, tasks, attendance, payments, assets, leave 
+• 
+AI-generated PDF reports exportable from the Reports module 
+• 
+Resume export as PDF from AI Resume Builder 
+• 
+Exit Report / Career Readiness Report exportable as PDF 
+ 
+19.3 Activity Logs 
+All user actions on major entities are logged via GET /Sims/logs/ and GET /Sims/logs/{empId}/. This 
+provides an audit trail of who did what, when. The log model stores: user_id, table_name, action, 
+old_data, new_data, user_name. 
+• 
+GET /Sims/logs/ — all activity logs (Manager/Admin view) 
+• 
+GET /Sims/logs/{empId}/ — per-intern activity log 
+• 
+Logs are append-only (no edit or delete of log records) 
+• 
+Immutable audit trail: who changed what, when, old value, new value 
+• 
+AI interaction log: all AI feature usage recorded for Mentor/Manager visibility 
+ 
+19.4 Intern Task Summary 
+GET /Sims/intern-task-summary/ provides per-intern task completion stats used in reports and the 
+performance dashboard. GET /Sims/intern-count-by-domain/ provides domain-wise intern 
+distribution for organizational analytics. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 48 of 77 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 49 of 77 
+20. Settings & Configuration 
+20.1 User Settings (/Settings) 
+Every user has access to a personal settings page providing: 
+• 
+Dark Mode toggle — switches the entire application between light and dark theme 
+(ThemeContext) 
+• 
+Language selection — UI language preference (LanguageContext). Multilingual support is 
+configurable 
+• 
+Email notifications toggle 
+• 
+Push notifications toggle 
+• 
+Profile picture upload (base64 stored, displayed across the app) 
+• 
+Password change (current password required) 
+• 
+Account deletion request 
+• 
+Data reset option 
+ 
+20.1a Personal Settings Details 
+• 
+Dark mode toggle — persisted to user profile (not just local state) 
+• 
+Language selection (multilingual UI support) 
+• 
+Email and push notification toggles with per-event granularity 
+• 
+Profile picture upload 
+• 
+Password change (current password required) 
+ 
+20.2 Entity-Level Configuration 
+The Manager can configure the following at entity level: 
+• 
+Working hours and shift definitions (morning, evening, standard, custom) 
+• 
+Leave policy: annual quota, carry-forward rules, leave types, approval chain depth 
+• 
+Payment cycles: weekly, bi-weekly, monthly 
+• 
+Feature module activation/deactivation (Learning Phase, Stipend, task self-creation, AI features) 
+• 
+SLA default rules: default time window and escalation delay thresholds 
+• 
+File upload restrictions: allowed types (PDF, JPG, PNG), maximum file size 
+• 
+Notification templates: customize content of system-generated emails and in-app messages 
+• 
+AI feature configuration: which AI features are enabled per role within this entity 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 50 of 77 
+21. Security & Audit 
+21.1 Authentication Security 
+• 
+DRF Token authentication: DRF Token — a unique token per user, invalidated on logout 
+• 
+Automatic token cleanup: 401 response from any API call clears localStorage and redirects to 
+login 
+• 
+All routes are protected — unauthenticated requests are redirected to /loginpage 
+• 
+Permission check on every protected dashboard mount via /Sims/user-permissions/ 
+• 
+MFA (TOTP/OTP) for Manager, Lead, and Super Admin 
+• 
+Session management: active session list and force logout 
+• 
+Password complexity enforcement (min length, mixed characters) and expiry reminders 
+ 
+21.2 Data Visibility Enforcement 
+• 
+Server-side scope enforcement: all data-fetching endpoints filter by the requesting user's entity, 
+role, and assigned interns/domains 
+• 
+Mentors cannot query interns not in their assignment list 
+• 
+Leads cannot access data from other domains 
+• 
+Managers see full entity data; Super Admin sees all entities 
+• 
+AI endpoints enforce the same scoping — intern data is never sent to the AI layer for users who 
+don't have visibility rights 
+ 
+21.3 Audit Logging 
+• 
+Append-only audit log: user, entity, action, timestamp, old value, new value 
+• 
+Accessible via GET /Sims/logs/ (Manager) and /Sims/logs/{empId}/ (per-intern) 
+• 
+AI interaction audit log: all AI requests logged with user, feature, timestamp, and prompt hash 
+• 
+Role/permission change versioning 
+ 
+21.4 Soft Delete 
+Major entities (Users, Interns, Tasks, Assets, Documents) support soft delete — records are 
+flagged as deleted (is_deleted) but retained in the database. 
+• 
+Soft-deleted records do not appear in normal list views 
+• 
+Authorized roles can restore soft-deleted records from the Recovery page 
+• 
+Permanent purge is a separate authorized action available only to Manager/Super Admin 
+• 
+Deleted users list: GET /Sims/deleted-users/ 
+• 
+Archiving is available for completed/dropped interns and closed projects to keep active views 
+clean 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 51 of 77 
+21.5 Role Delegation 
+• 
+Any approval-rights user can delegate permissions to another user for a time window 
+• 
+Delegation auto-expires at end date 
+• 
+Delegate actions logged with both delegate identity and original delegator 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 52 of 77 
+22. Complete API Reference 
+All endpoints use Token authentication. Base: http://localhost:8000 (dev) / https://sims-
+3fsg.onrender.com (prod). AI endpoints use same auth, base: /ai/. 
+ 
+22.1 Authentication 
+Endpoint 
+Method 
+Description 
+/Sims/login/ 
+POST 
+Login — returns Token 
+/Sims/logout/ 
+POST 
+Logout — invalidates token 
+/Sims/register/ 
+POST 
+Register user 
+/Sims/register/{empId}/ 
+POST 
+Register by employee ID 
+/Sims/password-reset/request/ 
+POST 
+Request OTP 
+/Sims/password-reset/verify/ 
+POST 
+Verify OTP 
+/Sims/password-reset/update/ 
+POST 
+Set new password 
+/Sims/me/ 
+GET 
+Current user role and permissions 
+/Sims/user-permissions/ 
+GET 
+Dashboard access flags 
+ 
+22.2 Users & Profiles 
+Endpoint 
+Method 
+Description 
+/Sims/users/ 
+GET 
+List all users 
+/Sims/interns/ 
+GET 
+List all interns 
+/Sims/interns/stats/ 
+GET 
+Intern count statistics 
+/Sims/interns/full-list/ 
+GET 
+Full intern list with all fields 
+/Sims/all-user-data/ 
+GET 
+All user profile data 
+/Sims/user-data/{empId}/ 
+GET / 
+PATCH 
+Get or update user data 
+/Sims/user/update/{empId}/ 
+PATCH 
+Update user record 
+/Sims/fulldetail/ 
+GET 
+Current user full detail 
+/Sims/staffs-details/ 
+GET 
+All staff with details 
+/Sims/staffs-by-department/ 
+GET 
+Staff grouped by department 
+/Sims/deleted-users/ 
+GET 
+Soft-deleted users 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 53 of 77 
+Endpoint 
+Method 
+Description 
+/Sims/intern-count-by-domain/ 
+GET 
+Intern count per domain 
+/Sims/intern-task-summary/ 
+GET 
+Per-intern task completion summary 
+/Sims/personal-data/{empId}/ 
+GET / 
+PATCH 
+Personal profile data 
+/Sims/submit-personal-update/ 
+POST 
+Submit profile change request 
+/Sims/profile-update-request/ 
+GET 
+Pending profile change requests 
+/Sims/approve-profile/{pk}/ 
+POST 
+Approve profile change 
+/Sims/reject-profile/{pk}/ 
+POST 
+Reject profile change 
+/Sims/college-details/{empId}/ 
+GET / 
+PATCH 
+College/academic details 
+/Sims/staffs/ 
+GET 
+All staff list 
+/Sims/users/reporting-staff/ 
+GET 
+Staff reporting to current user 
+ 
+22.3 Organization Hierarchy 
+Endpoint 
+Method 
+Description 
+/Sims/entities/ 
+GET / 
+POST 
+List or create entities 
+/Sims/entities/{pk}/ 
+PATCH / 
+DELETE 
+Update or delete entity 
+/Sims/branches/ 
+GET / 
+POST 
+List or create branches 
+/Sims/branches/{pk}/ 
+PATCH / 
+DELETE 
+Update or delete branch 
+/Sims/entity-departments/ 
+GET / 
+POST 
+List or create entity departments 
+/Sims/entity-departments/{pk}/ 
+PATCH / 
+DELETE 
+Update or delete entity department 
+/Sims/entity-hierarchy/ 
+GET 
+Full hierarchy tree 
+/Sims/departments/ 
+GET / 
+POST 
+List or create departments 
+/Sims/departments/{pk}/ 
+GET / 
+PATCH / 
+DELETE 
+CRUD on department 
+/Sims/domains/ 
+GET / 
+POST 
+List or create domains 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 54 of 77 
+Endpoint 
+Method 
+Description 
+/Sims/domains/{pk}/ 
+GET / 
+PATCH / 
+DELETE 
+CRUD on domain 
+/Sims/domains-by-department/ 
+GET 
+Domains grouped by department 
+ 
+22.4 Attendance 
+Endpoint 
+Method 
+Description 
+/Sims/attendance/ 
+GET 
+All attendance records 
+/Sims/attendance/{empId}/ 
+GET 
+Attendance for specific intern 
+/Sims/attendances/user/ 
+GET 
+Current user's own attendance 
+/Sims/attendances/leave_balance/ 
+GET 
+Leave balance for current user 
+/Sims/attendancedaterange/ 
+GET 
+Date-range filtered attendance 
+/Sims/attendanceanalysis/ 
+GET 
+Aggregated attendance analysis 
+/Sims/simpleattendancedata/ 
+GET 
+Simplified data for charts 
+/Sims/attendance/live-on/ 
+POST 
+Check in 
+/Sims/attendance/live-off/ 
+POST 
+Check out 
+/Sims/attendance/break-start/ 
+POST 
+Start break 
+/Sims/attendance/break-end/ 
+POST 
+End break 
+/Sims/attendances/leave_request/ 
+POST 
+Submit leave request 
+/Sims/attendances/leave_history/ 
+GET 
+Own leave history 
+/Sims/attendances/leave_history/{empId}/ 
+GET 
+Leave history for specific intern 
+/Sims/attendances/leave_approval/ 
+GET 
+Pending leave for approval 
+/Sims/attendances/leave_approval/{leaveId}/ 
+PATCH 
+Approve or reject leave 
+/Sims/leave-status/ 
+GET 
+Leave status summary 
+/Sims/attendance-claims/ 
+GET / 
+POST 
+List or create correction claims 
+/Sims/attendance-claims/my-claims/ 
+GET 
+Own claims 
+/Sims/attendance-claims/pending-approval/ 
+GET 
+Claims pending approval 
+/Sims/attendance-claims/{pk}/approve/ 
+POST 
+Approve claim 
+/Sims/attendance-claims/{pk}/reject/ 
+POST 
+Reject claim with reason 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 55 of 77 
+22.5 Tasks & Projects 
+Endpoint 
+Method 
+Description 
+/Sims/tasks/ 
+GET / 
+POST 
+List or create tasks 
+/Sims/tasks/{pk}/ 
+GET / 
+PATCH / 
+DELETE 
+CRUD on task 
+/Sims/tasks/due-today/ 
+GET 
+Tasks due today for current user 
+/Sims/tasks/{pk}/update-status-
+auto-next/ 
+PATCH 
+Move task to next status 
+/Sims/tasks/assigned-history/ 
+GET 
+Task assignment history 
+/Sims/tasks/monthly-count/ 
+GET 
+Monthly task count for chart 
+/Sims/tasks/weekly-performance/ 
+GET 
+Weekly task completion performance 
+/Sims/team-lead/projects/ 
+GET 
+Projects for current team lead 
+/Sims/projects/ 
+GET / 
+POST 
+List or create projects 
+/Sims/projects/{pk}/ 
+GET / 
+PATCH / 
+DELETE 
+CRUD on project 
+/Sims/projects/dashboard/ 
+GET 
+Project dashboard stats 
+/Sims/projects/{pk}/assign-team/ 
+POST 
+Assign team to project 
+/Sims/projects/{pk}/assign-team-
+lead/ 
+POST 
+Assign team lead 
+/Sims/teams/ 
+GET / 
+POST 
+List or create teams 
+/Sims/teams/{pk}/ 
+GET / 
+PATCH / 
+DELETE 
+CRUD on team 
+/Sims/teams/{teamId}/interns/ 
+GET 
+Interns in team 
+/Sims/teams/{teamId}/assign-
+interns/ 
+POST 
+Assign interns to team 
+/Sims/teams/{teamId}/remove-
+intern/ 
+POST 
+Remove intern from team 
+/Sims/teams/available-interns/ 
+GET 
+Interns not yet in a team 
+/Sims/team-leads/ 
+GET 
+All team leads 
+/Sims/completion-review/ 
+GET / 
+POST 
+Task completion review queue 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 56 of 77 
+22.6 Assets, Payments, Documents, Feedback 
+Endpoint 
+Method 
+Description 
+/Sims/assert-stock/ 
+GET / 
+POST 
+List or create assets 
+/Sims/assert-stock/{pk}/ 
+GET / 
+PATCH / 
+DELETE 
+CRUD on asset 
+/Sims/assert-stock-count/ 
+GET 
+Asset count by type/status 
+/Sims/asset-trend/ 
+GET 
+Monthly asset trend 
+/Sims/available-assets/ 
+GET 
+Available asset count 
+/Sims/asset-logs/ 
+GET 
+Asset activity logs 
+/Sims/asserthistory/ 
+GET 
+Full asset history 
+/Sims/asset-lookup/{code}/ 
+GET 
+Asset lookup by code 
+/Sims/assert-issue/ 
+GET / 
+POST 
+Asset issue reports 
+/Sims/assert-
+issue/{pk}/replacement-assets/ 
+GET 
+Available replacements 
+/Sims/assert-issue/{pk}/assign-
+new-asset/ 
+POST 
+Assign replacement 
+/Sims/fees/ 
+GET / 
+POST 
+Payment records 
+/Sims/fees/{empId}/ 
+GET 
+Intern payment record 
+/Sims/fees/{pk}/ 
+PATCH 
+Update payment 
+/Sims/fee-structure/ 
+GET / 
+POST 
+Fee structures 
+/Sims/documents/ 
+GET / 
+POST 
+Document records 
+/Sims/documents/{pk}/ 
+GET / 
+PATCH / 
+DELETE 
+CRUD on document 
+/Sims/documents/emp/{empId}/ 
+GET 
+Documents for intern 
+/Sims/documents/{pk}/download/ 
+GET 
+Download document as blob 
+/Sims/approve-document/{pk}/ 
+POST 
+Approve document 
+/Sims/reject-document/{pk}/ 
+POST 
+Reject with comment 
+/Sims/intern-approval-dashboard/ 
+GET 
+Approval status per intern 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 57 of 77 
+Endpoint 
+Method 
+Description 
+/Sims/feedback/ 
+GET / 
+POST 
+Feedback records 
+/Sims/feedback/{id}/ 
+GET / 
+PATCH / 
+DELETE 
+CRUD on feedback 
+ 
+22.7 Certificates, Dashboard, Notifications, Logs 
+Endpoint 
+Method 
+Description 
+/Sims/generate-completion-certificate/ 
+POST 
+Generate completion certificate 
+/Sims/generate-offer-letter/ 
+POST 
+Generate offer letter 
+/Sims/generate-task-certificate/ 
+POST 
+Generate task certificate 
+/Sims/generate-attendance-certificate/ 
+POST 
+Generate attendance certificate 
+/Sims/generate-partial-certificate/ 
+POST 
+Generate partial completion certificate 
+/Sims/dashboard/ 
+GET 
+General dashboard data 
+/Sims/performance/ 
+GET 
+Performance overview 
+/Sims/api/intern/monthly-performance/ 
+GET 
+Monthly performance trend 
+/Sims/admin/dashboard-summary/ 
+GET 
+Admin dashboard aggregated 
+summary 
+/Sims/notifications/ 
+GET 
+User notifications 
+/Sims/notifications/{id}/mark_read/ 
+PATCH 
+Mark notification as read 
+/Sims/notifications/mark_all_read/ 
+POST 
+Mark all as read 
+/Sims/logs/ 
+GET 
+All activity logs 
+/Sims/logs/{empId}/ 
+GET 
+Activity logs for intern 
+/Sims/onboarding/list/ 
+GET 
+Pending onboarding submissions 
+/Sims/onboarding/enable/{responseId}/ 
+POST 
+Approve and activate intern 
+/Sims/onboarding/send_credentials/{internId}/ 
+POST 
+Send login credentials 
+ 
+22.8 Forms App (/api/ prefix) 
+Endpoint 
+Method 
+Description 
+/api/forms/ 
+GET / 
+POST 
+List or create forms 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 58 of 77 
+Endpoint 
+Method 
+Description 
+/api/forms/{id}/ 
+GET / 
+PATCH / 
+DELETE 
+CRUD on form 
+/api/forms/{id}/upload_banner/ 
+POST 
+Upload form banner 
+/api/forms/{id}/analytics/ 
+GET 
+Form response analytics 
+/api/forms/{id}/responses/ 
+GET 
+All responses for form 
+/api/public/feedback/{formId}/ 
+GET / 
+POST 
+Public form submission 
+/api/responses/{responseId}/consult/ 
+PATCH 
+Toggle consult flag 
+/api/responses/{responseId}/comments/ 
+GET / 
+POST 
+Response comments 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 59 of 77 
+23. Complete End-to-End Execution Flow 
+The complete lifecycle of a SIMS deployment from first install to intern exit, in chronological 
+operational order. 
+ 
+Phase 1 — System Setup (Super Admin) 
+89. Super Admin logs in and creates an Entity (company/academy name). 
+90. Creates a Manager account and assigns them to the entity. 
+91. Activates required modules (Attendance, Tasks, Payments, AI Features). 
+ 
+Phase 2 — Organization Configuration (Manager) 
+92. Creates Branches, Departments, and Domains. 
+93. Configures working hours, shifts, leave policy, payment cycles, and AI feature toggles in 
+Settings. 
+94. Creates Lead and Mentor accounts via /admin/register. 
+95. Creates Teams and assigns Mentors as team leads. 
+ 
+Phase 3 — Intern Onboarding 
+96. Intern submits onboarding form at /InternOnboarding. 
+97. AI Onboarding Readiness Check automatically evaluates submission completeness and resume 
+domain fit. 
+98. Manager reviews (with AI readiness score) and approves the account. 
+99. Manager sends login credentials to intern. 
+100. 
+Intern logs in, uploads required documents. AI evaluates uploaded resume. 
+101. 
+Staff reviews and approves documents. 
+102. 
+Manager assigns intern to Domain and Team. Issues assets. 
+103. 
+Intern status → Active. 
+ 
+Phase 4 — Learning Phase 
+104. 
+Mentor assigns learning tasks. AI generates a personalized learning path based on 
+resume skill analysis. 
+105. 
+Intern works through learning tasks. AI generates practice quizzes and explains concepts 
+on demand. 
+106. 
+Intern uses AI Mock Interview for technical interview preparation. 
+107. 
+Intern uses AI Resume Builder to create a professional resume from SIMS data. 
+108. 
+Mentor reviews learning progress. AI flags if intern is behind pace. 
+109. 
+Learning phase marked complete → intern transitions to Active project status. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 60 of 77 
+ 
+Phase 5 — Active Internship (Daily Operations) 
+110. 
+Intern checks in via attendance widget. AI chatbot available for questions and navigation. 
+111. 
+Mentor/Lead assigns project tasks. AI suggests task descriptions, subtask breakdowns, 
+and SLA estimates. 
+112. 
+Intern works on tasks, updating status. AI explains any unclear task requirements. 
+113. 
+Intern checks out at end of day. Total hours calculated. 
+114. 
+Leave application → Mentor approval via attendance module. 
+115. 
+AI Attendance Anomaly Detection runs daily — flags unusual patterns to Mentor. 
+ 
+Phase 6 — Ongoing Monitoring (Staff) 
+116. 
+Mentor reviews Intern Management Dashboard with AI performance badges and risk 
+flags. 
+117. 
+Lead reviews Task Dashboard with AI project health indicators. 
+118. 
+SLA warnings appear on overdue tasks. Escalation chain triggers automatically. 
+119. 
+Mentor opens Performance Feedback — AI drafts feedback from metrics. Mentor 
+reviews and submits. 
+120. 
+Manager reviews AI report: 'Which interns are at risk this month?' via natural language 
+report generator. 
+121. 
+Manager processes payroll via Payroll Dashboard. 
+ 
+Phase 7 — Performance Evaluation 
+122. 
+Lead reviews AI Performance Analysis report for each intern. 
+123. 
+AI identifies top performers, at-risk interns, and outliers with reasoning. 
+124. 
+Lead performs final evaluation using AI-suggested evaluation summary as a starting 
+draft. 
+125. 
+Lead marks outcome: Selected / Not Selected. 
+126. 
+Eligible interns promoted: Free → Paid → Stipend → Employee. 
+ 
+Phase 8 — Exit & Certificate Generation 
+127. 
+Internship end date reached or Manager marks Complete. 
+128. 
+Intern returns all assets. Condition verified. Asset record closed. 
+129. 
+AI generates Exit Summary & Career Readiness Report for the intern. 
+130. 
+Manager generates Completion Certificate (standard + AI-enhanced version with career 
+readiness report). 
+131. 
+Intern status → Completed. Account archived (soft delete). 
+132. 
+All data retained. Final reports available in analytics. 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 61 of 77 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 62 of 77 
+24. Complete Feature Checklist 
+Definitive checklist for the complete system including all AI features. Use as acceptance criteria for 
+project completion. 
+ 
+24.1 Identity & Access 
+• 
+Multi-entity architecture with Super Admin 
+• 
+Six-level role hierarchy: Super Admin, Manager, Lead/SME, Mentor, Intern (Staff View), Intern 
+(Self) 
+• 
+Token-based auth with global 401 interceptor and auto-logout 
+• 
+OTP-based password reset flow 
+• 
+Role-based route protection (ProtectedRoute + ProtectedDashboardRoute) 
+• 
+Server-side data visibility scoping per role 
+• 
+Entity-level module activation/deactivation (including AI features) 
+• 
+Per-role permission policy customization by Manager 
+• 
+Role delegation with time expiry and attribution logging 
+• 
+MFA (TOTP/OTP) for Manager and above 
+• 
+Session management: active session list, force logout 
+• 
+Password complexity enforcement and expiry reminders 
+ 
+24.2 Organization & Users 
+• 
+Entity, Branch, Department, Domain hierarchy with full CRUD 
+• 
+Staff account creation and management 
+• 
+Intern multi-step onboarding form with all required fields 
+• 
+Onboarding approval workflow with credential dispatch 
+• 
+Profile update request and approval flow 
+• 
+CSV bulk import for interns, tasks, and assets with validation and error log 
+• 
+Soft delete and recovery for all user types 
+• 
+Team creation and intern assignment management 
+ 
+24.3 Intern Lifecycle 
+• 
+Lifecycle states: yettojoin, active, onleave, completed, discontinued 
+• 
+Enforced state transitions with history tracking 
+• 
+Promotion pathway: Free → Paid → Stipend → Employee → Mentor/Lead 
+• 
+Promotion approval workflow with date and basis recording 
+• 
+Archive function for completed/discontinued interns 
+• 
+Activity timeline per intern: chronological event feed of all actions 
+• 
+Notes/comments on intern profiles: internal vs intern-visible flag 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 63 of 77 
+24.4 Attendance & Leave 
+• 
+Check-in / check-out with session timer and break tracking 
+• 
+Daily attendance log with total hours and effective hours calculation 
+• 
+Leave application and multi-level approval workflow 
+• 
+Leave balance tracking and quota enforcement 
+• 
+Leave deduction integrated into attendance % calculation 
+• 
+Attendance correction claim requests with approval 
+• 
+Shift definitions per entity with late-mark and half-day rules 
+• 
+Intern hours calculator 
+ 
+24.5 Task & Project Management 
+• 
+Task CRUD with type, priority, assignee, project, due date, subtasks 
+• 
+Task status flow with completion review queue 
+• 
+Task dependency (blocked-by) with transition guard 
+• 
+SLA deadline fields with visual warning and breach indicators 
+• 
+Auto-escalation engine: overdue → intern → Mentor → Lead → Manager 
+• 
+Task versioning: full edit history with diff view 
+• 
+Task-level timer for effective hours tracking 
+• 
+Bulk project task creation via grid interface 
+• 
+Project CRUD with team and team lead assignment 
+• 
+Gantt chart view for project planning 
+• 
+Team management with intern assignment/removal 
+ 
+24.6 Learning Phase 
+• 
+Dedicated learning task type isolated from project tasks 
+• 
+Sequential learning path assignment with dependency ordering 
+• 
+Intern-facing learning progress view separate from project tasks 
+• 
+Mentor visibility of per-intern learning completion % 
+• 
+AI-generated personalized learning path from skill gap analysis 
+• 
+AI practice quiz generation from learning task content 
+• 
+AI concept explainer within learning tasks 
+ 
+24.7 Payments 
+• 
+Three payment types: Free, Paid, Stipend (set at onboarding) 
+• 
+Payment CRUD with status: Paid, Pending, Overdue 
+• 
+Cash payment approval workflow 
+• 
+Payment history versioning 
+• 
+Payment cycle configuration per entity 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 64 of 77 
+• 
+Intern read-only payment view 
+ 
+24.8 Asset Management 
+• 
+Asset CRUD with code, type, serial number, condition, status 
+• 
+Asset assignment with issue date and expected return date 
+• 
+Issue reporting with replacement workflow 
+• 
+Return with condition verification 
+• 
+Full audit history per asset 
+• 
+Soft delete and restore 
+ 
+24.9 Document Management 
+• 
+Document upload with type classification 
+• 
+Validation pipeline: Pending → Approved / Rejected with comments 
+• 
+Re-upload flow for rejected documents with version history 
+• 
+Structured file storage hierarchy with type/size validation 
+• 
+Document download as blob 
+• 
+AI resume evaluation integrated into upload flow 
+ 
+24.10 Feedback & Performance 
+• 
+Mentor periodic feedback with qualitative notes and numeric scores 
+• 
+Lead final evaluation with Selected / Not Selected outcome 
+• 
+Student-to-staff feedback 
+• 
+Public feedback forms with shareable link 
+• 
+Forms builder with 8 question types 
+• 
+Auto-calculated metrics: attendance%, completion rate, effective hours ratio, quality rating 
+• 
+Feedback versioning 
+• 
+Intern visibility of final evaluation (configurable) 
+ 
+24.11 AI Features 
+• 
+AI Chatbot Assistant — LLM-powered, voice input/output, context-aware, multi-turn 
+• 
+AI Performance Analysis — narrative report, scoring, risk flags, comparative analytics 
+• 
+AI Learning Path Generator — skill gap analysis, personalized path, domain readiness score 
+• 
+AI Practice Quiz Generator — MCQ/short-answer from learning task content 
+• 
+AI Concept Explainer — explain any term in a task description 
+• 
+AI Resume Evaluator — ATS score, domain fit, section scores, improvement suggestions 
+• 
+AI Resume Builder — generates complete resume from SIMS data, exportable as PDF 
+• 
+AI Mock Interview — domain-specific, behavioral, project-based, company prep interview modes 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 65 of 77 
+• 
+AI Interview Report — per-question scores, strengths, improvement areas, action plan 
+• 
+AI Smart Task Suggestions — description generator, task decomposer, SLA estimator, workload 
+balancer 
+• 
+AI Attendance Anomaly Detection — pattern detection, dropout risk scoring 
+• 
+AI Feedback Writing Assistant — draft generator, tone checker, consistency checker 
+• 
+AI Exit Summary & Career Readiness Report — exportable PDF for job applications 
+• 
+AI Smart Search — natural language queries across all entities 
+• 
+AI Onboarding Readiness Check — submission completeness and domain fit scoring 
+• 
+AI Natural Language Report Generator — any report from a plain English request 
+• 
+AI Notification Intelligence — smart digest, priority classification, noise reduction 
+ 
+24.12 Certificates 
+• 
+Completion, Offer Letter, Task, Attendance, Partial Completion certificates 
+• 
+AI-Enhanced Completion Certificate with Career Readiness Report 
+ 
+24.13 Notifications 
+• 
+In-app notifications with unread count badge 
+• 
+Email notifications for key events 
+• 
+AI smart digest, priority classification, contextual summaries 
+• 
+Per-user notification preferences 
+ 
+24.14 Reporting & Analytics 
+• 
+Role-based dashboards: Admin, Task, Attendance, Asset, Payroll, Intern Self 
+• 
+CSV/Excel export from all major list views 
+• 
+AI-generated PDF reports from natural language requests 
+• 
+Activity/audit log viewer 
+• 
+AI Performance Scoring and comparative analytics 
+• 
+AI risk flags: at-risk interns, overloaded interns, disengaged interns 
+ 
+24.15 System-Wide 
+• 
+Soft delete and recovery for all major entities 
+• 
+Versioning and edit history for tasks, payments, roles, documents 
+• 
+Immutable audit log with AI interaction audit trail 
+• 
+Unified calendar view: task deadlines, leaves, milestones 
+• 
+iCal feed for Google Calendar / Outlook sync 
+• 
+Global AI smart search across all entities 
+• 
+Advanced filter save/bookmark on all list views 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 66 of 77 
+• 
+UTC timestamp storage with local timezone display 
+• 
+REST API with documented endpoints 
+• 
+Webhooks for key events 
+• 
+Dark mode persisted to user profile 
+• 
+Responsive design for all core intern flows on mobile 
+• 
+Notes/comments on tasks and intern profiles 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 67 of 77 
+25. Complete Page & Component Map 
+26.1 Public / Auth Pages 
+Page / Component 
+Route 
+Purpose 
+InternHomePage 
+/ 
+Public landing page with hero slider, 
+features, about, contact, program 
+banner. 
+LoginPage 
+/loginpage 
+Login form. Routes to appropriate 
+dashboard on success. 
+Recovery 
+/Recovery 
+Step 1 of password reset: enter email, 
+receive OTP. 
+Reset 
+/Reset 
+Step 2 of password reset: enter OTP 
+and new password. 
+AboutUs1 
+/AboutUs1 
+Public about page. 
+ContactUs1 
+/ContactUs1 
+Public contact page. 
+PublicFeedbackForm 
+/feedback/:formId 
+Public form response submission (no 
+auth required). 
+ 
+26.2 Admin Dashboard Pages (under /admin/*) 
+Component 
+Route 
+Purpose 
+AdminDashboardContent 
+/admin/dashboard 
+Main summary dashboard for 
+Manager/Super Admin. 
+StaffList 
+/admin/user 
+All staff management: view, edit, 
+deactivate. 
+InternLists 
+/admin/interns 
+All intern management with CSV 
+export and bulk actions. 
+PaymentList 
+/admin/payments 
+Payment records management. 
+DepartmentManagement 
+/admin/departments 
+Department and domain hierarchy 
+CRUD. 
+EntityManagement 
+/admin/entities 
+Entity, branch, entity-department 
+hierarchy CRUD. 
+PerformanceFeedbackPage 
+/admin/feedback 
+All feedback submissions. 
+TeamManagement 
+/admin/teams 
+Team creation and composition. 
+RegisterPage 
+/admin/register 
+Staff registration form. 
+AdminProfile 
+/admin/profile 
+Admin/Manager profile management. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 68 of 77 
+ 
+26.3 Intern Management Dashboard Pages (under /intern/*) 
+Component 
+Active View 
+Purpose 
+InternDashboard 
+(dashboard) 
+/intern/dashboard 
+Summary cards and intern overview. 
+InternManagementLists 
+/intern/users 
+Intern table with status, domain, actions. 
+DocumentView (staff) 
+/intern/documents 
+Document upload and approval per intern. 
+PerformanceFeedbackList 
+/intern/feedbacks 
+Feedback list for managed interns with AI 
+draft button. 
+Forms 
+/intern/forms 
+Form builder and response viewer. 
+InternApprovalDashboard 
+/intern/approval-
+dashboard 
+Pending document approvals. 
+CompletionList 
+/intern/approvals 
+(completionList) 
+Task completion review queue. 
+ 
+26.4 Task Dashboard Pages (under /task/*) 
+View 
+Active View ID 
+Purpose 
+Tasks Dashboard 
+tasks 
+Task overview: counts, charts, due-today 
+list, AI workload insights. 
+Task List 
+task-list 
+Full task table with filters, bulk actions, AI 
+suggestion button. 
+Projects 
+projects 
+Project cards with status, team, task count. 
+Full CRUD. 
+Project Status 
+project-status 
+Per-project detail with task breakdown, 
+team, progress bar, milestones. 
+Teams 
+teams 
+Team composition and intern assignment. 
+Departments 
+departments 
+Department and domain hierarchy view. 
+Individual Task 
+individual-task 
+Single task deep-dive with subtasks, 
+comments, file attachments. 
+User List 
+user-list 
+User list in task context. 
+ 
+26.5 Attendance, Payroll & Asset Dashboard Pages 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 69 of 77 
+Dashboard 
+Views 
+Route 
+AttendanceDashboard 
+dashboard, table (Daily), 
+attendance-log, leave, 
+attendance-claims, profile 
+/attendance/* 
+PayrollDashboard 
+dashboard, payments 
+(Payment Management), 
+profile 
+/payroll/* 
+AssetDashboard 
+dashboard, assets (Asset 
+Management), intern-status, 
+asset-report, profile 
+/asset/* 
+ 
+26.6 Intern Self-Service Pages (under /intern-user/*) 
+Page Component 
+Route 
+Purpose 
+Dash.js (Dashboard) 
+/intern-user/dashboard 
+Home: check-in/out, tasks, announcements, 
+performance summary, AI chatbot. 
+AttendanceManagement 
+/intern-user/attendance 
+Check in/out, breaks, attendance log. 
+DocumentView 
+/intern-user/documents 
+Upload documents, view approval status. AI 
+resume evaluation. 
+PaymentStatusPage 
+/intern-user/payment-
+status 
+Read-only payment record view. 
+AssetReport 
+/intern-user/asset-
+report 
+View assigned assets, submit issue reports. 
+PerformancePage 
+/intern-
+user/performance-
+feedback 
+AI performance analysis, metrics, feedback 
+charts. 
+LeaveManagement 
+/intern-user/leave 
+Apply for leave, view history and balance. 
+Tasks (read-only) 
+/intern-user/tasks 
+View and update own task list. 
+InternHoursCalculator 
+/intern-user/hours-
+calculator 
+Calculate total effective working hours for any 
+date range. 
+StudentStaffFeedback 
+/intern-user/staff-
+feedback 
+Submit feedback about Mentor/Lead. 
+TeamsManagement 
+/intern-user/teams 
+View team composition and Mentor. 
+InternProfile 
+/intern-user/profile 
+Own profile view and edit. 
+MockInterviewPage 
+(NEW) 
+/intern-user/mock-
+interview 
+AI mock interview sessions and history. 
+ResumeBuilderPage 
+(NEW) 
+/intern-user/resume-
+builder 
+AI resume generator, evaluator, and PDF 
+export. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 70 of 77 
+Page Component 
+Route 
+Purpose 
+LearningPage (NEW) 
+/intern-user/learning 
+AI learning path, quizzes, and concept 
+explainer. 
+ 
+26.7 New Staff/Admin AI Pages 
+Page 
+Route 
+Purpose 
+InternHomePage 
+/ 
+Public landing page 
+LoginPage 
+/loginpage 
+Login form 
+Recovery 
+/Recovery 
+Password reset step 1 
+Reset 
+/Reset 
+Password reset step 2 
+PublicFeedbackForm 
+/feedback/:formId 
+Public form submission 
+AdminDashboard (shell) 
+/admin/* 
+Admin shell: routes to sub-components 
+AdminDashboardContent 
+/admin/dashboard 
+Admin summary dashboard 
+StaffList 
+/admin/user 
+Staff management 
+InternLists 
+/admin/interns 
+Intern management with export 
+PaymentList 
+/admin/payments 
+Payment records 
+DepartmentManagement 
+/admin/departments 
+Department/domain hierarchy 
+EntityManagement 
+/admin/entities 
+Entity/branch hierarchy 
+PerformanceFeedbackPage 
+/admin/feedback 
+All feedback 
+TeamManagement 
+/admin/teams 
+Team management 
+RegisterPage 
+/admin/register 
+Staff registration 
+InternDashboard 
+/intern/* 
+Intern management shell 
+Tasks 
+/task/* 
+Task management shell 
+AttendanceDashboard 
+/attendance/* 
+Attendance management shell 
+PayrollDashboard 
+/payroll/* 
+Payroll management shell 
+AssetDashboard 
+/asset/* 
+Asset management shell 
+Dash.js 
+/intern-user/dashboard 
+Intern home dashboard 
+AttendanceManagement 
+/intern-user/attendance 
+Intern check-in/out 
+DocumentView 
+/intern-user/documents 
+Intern document upload 
+PaymentStatusPage 
+/intern-user/payment-status 
+Intern payment view 
+AssetReport 
+/intern-user/asset-report 
+Intern asset view 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 71 of 77 
+Page 
+Route 
+Purpose 
+PerformancePage 
+/intern-user/performance-
+feedback 
+Intern performance view 
+LeaveManagement 
+/intern-user/leave 
+Intern leave management 
+InternHoursCalculator 
+/intern-user/hours-calculator 
+Hours calculator 
+StudentStaffFeedback 
+/intern-user/staff-feedback 
+Staff feedback submission 
+MockInterviewPage (NEW) 
+/intern-user/mock-interview 
+AI mock interview sessions 
+ResumeBuilderPage (NEW) 
+/intern-user/resume-builder 
+AI resume builder and evaluator 
+LearningPage (NEW) 
+/intern-user/learning 
+AI learning path and quizzes 
+AIReportsPage (NEW) 
+/admin/ai-reports 
+Natural language report generator 
+AIInsightsPage (NEW) 
+/intern/ai-insights 
+AI performance analysis for all interns 
+AuditLogPage (NEW) 
+/admin/audit-log 
+Immutable audit log viewer 
+DelegationPage (NEW) 
+/admin/delegation 
+Role delegation management 
+CalendarPage (NEW) 
+/calendar 
+Unified calendar view 
+ImportPage (NEW) 
+/admin/import 
+CSV bulk import wizard 
+WebhooksPage (NEW) 
+/admin/webhooks 
+Webhook configuration 
+ 
+27. Key Data Models 
+Reference of the primary data models inferred from the API structure and frontend field usage. 
+ 
+27.1 User / Intern Record 
+Field 
+Type 
+Notes 
+emp_id 
+String (PK) 
+Employee/Intern unique identifier. 
+username / email 
+String 
+Login credential. 
+role 
+Enum 
+superadmin / manager / lead / mentor / intern. 
+user_status 
+Enum 
+yettojoin / inprogress / onleave / completed / 
+discontinued. 
+department 
+FK → 
+Department 
+Assigned department. 
+domain 
+FK → Domain 
+Assigned domain/specialization. 
+scheme 
+Enum 
+Free / Paid / Stipend. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 72 of 77 
+Field 
+Type 
+Notes 
+shift_timing 
+String 
+Assigned shift (e.g., Morning, Evening, Standard). 
+start_date / end_date 
+Date 
+Internship duration. 
+photo 
+File 
+Profile photo. 
+is_deleted 
+Boolean 
+Soft delete flag. 
+ 
+27.2 Task 
+Field 
+Type 
+Notes 
+id 
+Integer (PK) 
+Task ID. 
+title / description 
+String / Text 
+Task name and detailed requirements. 
+status 
+Enum 
+To Do / In Progress / Completed. 
+priority 
+Enum 
+Low / Medium / High. 
+task_type 
+Enum 
+Learning / Project / Custom. 
+assigned_to 
+FK → User 
+Responsible intern or staff. 
+project 
+FK → Project 
+Parent project. 
+due_date / 
+committedDate 
+Date 
+Task deadline for SLA calculation. 
+progress 
+Integer (0–100) 
+Progress percentage. 
+blocked_by 
+FK → Task (self) 
+Dependency — prerequisite task. 
+sla_hours 
+Integer 
+SLA time window in hours. 
+subtasks 
+Array 
+Child tasks with own status. 
+ 
+27.3 Attendance Record 
+Field 
+Type 
+Notes 
+emp_id 
+FK → User 
+Intern the record belongs to. 
+date 
+Date 
+Attendance date. 
+check_in 
+DateTime 
+Check-in timestamp. 
+check_out 
+DateTime 
+Check-out timestamp. 
+total_hours 
+Float 
+Calculated: check_out − check_in − break_time. 
+break_start / break_end 
+DateTime 
+Break window timestamps. 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 73 of 77 
+Field 
+Type 
+Notes 
+status 
+Enum 
+Present / Absent / On Leave. 
+ 
+27.4 Asset 
+Field 
+Type 
+Notes 
+asset_code 
+String (unique) 
+Lookup key for asset. 
+asset_type 
+String 
+Laptop, ID Card, Accessories, etc. 
+serial_number 
+String 
+Physical serial number. 
+condition 
+Enum 
+Good / Damaged / Lost. 
+status 
+Enum 
+Available / Assigned / Damaged / Lost. 
+assigned_to 
+FK → User 
+Currently assigned intern. 
+issue_date 
+Date 
+Date asset was issued. 
+expected_return_date 
+Date 
+Expected return date. 
+is_deleted 
+Boolean 
+Soft delete flag. 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 74 of 77 
+28. New Components Required 
+• 
+AIChatWidget — floating chatbot widget with voice input/output (upgrade existing rule-based 
+chatbot) 
+• 
+AIPerformanceReport — full-page AI narrative performance analysis with export 
+• 
+AIScoreBadge — compact AI performance score chip shown on intern cards and lists 
+• 
+AIRiskFlag — visual risk indicator (at-risk, overloaded, disengaged) with tooltip explanation 
+• 
+MockInterviewPanel — full interview session UI with question display, answer input, real-time 
+score chips 
+• 
+InterviewReportCard — structured report display with per-question breakdown and charts 
+• 
+ResumeEditor — section-by-section resume editor with AI improve buttons per section 
+• 
+ResumeSectionSuggestion — side panel showing AI suggestions for a selected resume section 
+• 
+ResumePreview — real-time styled preview of the generated resume 
+• 
+LearningPathTimeline — visual sequential learning path with locked/unlocked state per task 
+• 
+AIQuizCard — MCQ/short-answer quiz interface with immediate answer feedback 
+• 
+SkillGapChart — radar/bar chart showing current vs required skills for the domain 
+• 
+TaskDependencySelector — multi-select tasks as blocked-by prerequisites 
+• 
+SLABadge — countdown chip showing time remaining / breach status on task cards 
+• 
+EscalationTimeline — shows escalation chain status for overdue tasks 
+• 
+VersionHistoryDrawer — side panel with field-level diff history for tasks/payments/documents 
+• 
+ActivityTimeline — chronological event feed per intern 
+• 
+CommentThread — threaded comments with internal/visible flag on tasks and profiles 
+• 
+BulkImportWizard — step-by-step CSV import with column mapping, preview, error report 
+• 
+CalendarWidget — unified calendar with category filters (tasks, leaves, milestones) 
+• 
+PromotionModal — promotion approval workflow with basis recording 
+• 
+GlobalSearchBar — AI-powered search overlay with scoped results 
+• 
+DelegationModal — create delegation: user, permissions subset, date range 
+• 
+ShiftConfigEditor — entity-level shift definition with late-mark rules 
+• 
+EntityFeatureFlagPanel — toggle module and AI feature activation per entity 
+• 
+NaturalLanguageReportInput — text input that triggers AI report generation 
+ 
+ 
+ 
+ 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 75 of 77 
+26. UI/UX Guidelines & Design System 
+29.1 Technology 
+Complete frontend technology stack: 
+• 
+Primary UI: Material UI (MUI) v6 with custom theme — consistent typography, spacing, elevation 
+across all dashboards 
+• 
+Utility styling: Tailwind CSS v4 for layout, spacing, and responsive utilities 
+• 
+Animation: Framer Motion for page transitions and micro-interactions 
+• 
+Drag & Drop: @dnd-kit/core and @dnd-kit/sortable for Kanban task boards 
+• 
+Date/Time: MUI X Date Pickers with dayjs adapter — all date display uses dayjs for consistent 
+formatting 
+• 
+Charts: MUI X Charts, Chart.js (via react-chartjs-2), Recharts — each used consistently per chart 
+type 
+• 
+Icons: MUI Icons Material + Lucide React + Heroicons 
+• 
+Data Tables: MUI DataGrid (x-data-grid v7) for all large tabular data with built-in pagination, 
+sorting, column resizing 
+• 
+Circular progress: react-circular-progressbar for performance metric display 
+• 
+CSV Export: react-csv for intern list and report exports 
+• 
+Status chips: MUI Chip with color-coded states throughout all list views 
+• 
+Priority badges: Low (green), Medium (orange), High (red) 
+ 
+29.2 Layout Pattern 
+• 
+All dashboards: fixed header (64px) + fixed left sidebar (240px) + scrollable main content area 
+• 
+Mobile: sidebar collapses to a hamburger menu. Core intern flows (check-in, tasks, leave) are 
+fully usable on mobile 
+• 
+Admin dashboard uses a simplified sidebar with only 5 navigation items for clean management 
+UX 
+• 
+AI features surface contextually — not as a separate menu but as enhancement buttons within 
+relevant pages 
+ 
+29.3 Dark Mode 
+• 
+Dark mode is toggled via ThemeContext (ThemeToggle.js component) stored in Settings 
+• 
+Dark mode preference is persisted to the user profile (not just local state) — survives logout/re-
+login 
+• 
+Dark background color: #0f0f1a. Light background: bg-gray-50 
+ 
+29.4 Feedback Patterns 
+• 
+Toast notifications: react-toastify (top-right, 5 second auto-close) for operation success/error 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 76 of 77 
+• 
+Inline snackbars (MUI Snackbar) for context-specific alerts within dashboards 
+• 
+Loading spinners (MUI CircularProgress) on all data-fetching operations 
+• 
+Empty state illustrations for lists with no data 
+• 
+Confirmation dialogs (MUI Dialog) for destructive actions (delete, deactivate, reject) 
+• 
+Streaming text display for AI responses — animated typewriter effect via character buffering 
+ 
+29.5 Data Display 
+• 
+MUI DataGrid (x-data-grid v7) for all large tabular data with built-in pagination, sorting, and 
+column resizing 
+• 
+MUI X Charts, Chart.js (via react-chartjs-2), and Recharts for all visualizations — used 
+consistently per chart type 
+• 
+Circular progress bars (react-circular-progressbar) for performance metric display 
+• 
+Status chips (MUI Chip) with color-coded states throughout all list views 
+• 
+Priority badges: Low (green), Medium (orange), High (red) 
+ 
+29.6 AI Feature UX Principles 
+• 
+Primary UI: Material UI (MUI) v6 — consistent typography, spacing, elevation across all 
+dashboards 
+• 
+Utility styling: Tailwind CSS v4 for layout, spacing, and responsive utilities 
+• 
+Animation: Framer Motion for page transitions and micro-interactions 
+• 
+Drag & Drop: @dnd-kit/core and @dnd-kit/sortable for Kanban task boards 
+• 
+Date/Time: MUI X Date Pickers with dayjs adapter — all dates display via dayjs for consistency 
+• 
+Charts: MUI X Charts, Chart.js (react-chartjs-2), Recharts — use consistently per chart type 
+• 
+Icons: MUI Icons Material + Lucide React + Heroicons 
+• 
+PDF Export: react-signature-canvas, exceljs, file-saver, xlsx for export capabilities 
+ 
+29.7 Layout Principles 
+• 
+All dashboards: fixed header (64px) + fixed left sidebar (240px) + scrollable main content area 
+• 
+Mobile: sidebar collapses to hamburger. Core intern flows (check-in, tasks, leave) fully mobile-
+usable 
+• 
+Admin dashboard uses simplified 5-item sidebar for clean management UX 
+• 
+AI features surface contextually — not as a separate menu but as enhancement buttons within 
+relevant pages 
+ 
+29.8 AI Feature UX Principles 
+• 
+AI suggestions are never auto-applied — always presented as a draft or suggestion the user can 
+accept/edit/ignore 
+• 
+AI responses stream where possible — avoid blank wait screen by showing tokens as they arrive 
+SIMS — Complete Project Specification with AI Features 
+CONFIDENTIAL 
+SIMS Project Specification  |  Page 77 of 77 
+• 
+AI actions are clearly labeled with a 🤖 icon or 'AI' badge so users know when AI is involved 
+• 
+Every AI output has a 'Regenerate' and 'Feedback' option so users can improve results 
+• 
+AI performance score is shown alongside (never instead of) the raw metric values 
+• 
+AI chatbot is a floating widget — non-intrusive, dismissed with one click, never auto-opens 
+ 
+29.9 Feedback Patterns (Detail) 
+• 
+Toast notifications (react-toastify, top-right, 5s) for operation success/error 
+• 
+Inline MUI Snackbar for context-specific alerts within dashboards 
+• 
+MUI CircularProgress on all data-fetching operations 
+• 
+Empty state illustrations for lists with no data 
+• 
+MUI Dialog for confirmation on destructive actions (delete, deactivate, reject) 
+• 
+Streaming text display for AI responses — animated typewriter effect via character buffering 
+ 
+ 
+ 
+  End of SIMS Complete Project Specification with AI Features   
+ 
+Generated: 28 April 2026 

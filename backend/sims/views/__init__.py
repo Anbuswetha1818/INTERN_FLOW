@@ -1,0 +1,13 @@
+from .auth_views import *  # noqa
+from .user_views import *  # noqa
+from .org_views import *  # noqa
+from .attendance_views import *  # noqa
+from .task_views import *  # noqa
+from .asset_views import *  # noqa
+from .payment_views import *  # noqa
+from .document_views import *  # noqa
+from .feedback_views import *  # noqa
+from .notification_views import *  # noqa
+from .certificate_views import *  # noqa
+from .dashboard_views import *  # noqa
+from .log_views import *  # noqa
