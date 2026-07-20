@@ -1415,7 +1415,7 @@ html, body, #root, .dashboard-layout, .dashboard-content {
   }
 }
 
-/* 7. Grid Containers & Hero Cards */
+/* 7. Grid Containers, Hero Cards & Panels */
 @media (max-width: 900px) {
   .hero-grid, .panel-grid, .stat-row {
     grid-template-columns: 1fr !important;
@@ -1432,6 +1432,127 @@ html, body, #root, .dashboard-layout, .dashboard-content {
   .hero-card, .panel, .glass-card, .stat-card {
     padding: 16px !important;
     border-radius: 16px !important;
+  }
+
+  .hero-card {
+    min-height: auto !important;
+  }
+
+  .hero-value {
+    font-size: 26px !important;
+  }
+
+  .stat-card-value {
+    font-size: 20px !important;
+  }
+
+  /* Panel head & Legend */
+  .panel-head {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .legend {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+
+  /* Charts & Bars */
+  .chart-area {
+    gap: 6px !important;
+    height: 150px !important;
+    padding: 0 2px 4px !important;
+  }
+
+  .chart-labels {
+    gap: 6px !important;
+    padding: 0 2px !important;
+  }
+
+  .chart-labels span {
+    font-size: 10px !important;
+  }
+
+  .bar {
+    width: 5px !important;
+    border-radius: 3px 3px 0 0 !important;
+  }
+
+  .domain-total, .donut-total-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+
+  .donut-wrap {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+  }
+
+  /* Toolbars, Search & Filters */
+  .glass-card > .MuiBox-root,
+  .toolbar-row,
+  .filter-row {
+    padding: 12px 14px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .glass-card > .MuiBox-root > .MuiBox-root,
+  .glass-card .MuiTextField-root,
+  .glass-card .MuiFormControl-root,
+  .glass-card .MuiButton-root {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Tabs Horizontal Scroll */
+  .MuiTabs-root {
+    min-height: 40px !important;
+  }
+  .MuiTabs-flexContainer {
+    gap: 4px !important;
+  }
+  .MuiTab-root {
+    padding: 8px 12px !important;
+    min-width: auto !important;
+    font-size: 0.8125rem !important;
+    min-height: 40px !important;
+    white-space: nowrap !important;
+  }
+  .MuiTabs-scroller {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Pagination */
+  .MuiTablePagination-root {
+    padding: 8px 4px !important;
+    overflow-x: auto !important;
+  }
+  .MuiTablePagination-toolbar {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 6px !important;
+  }
+  .MuiTablePagination-spacer {
+    display: none !important;
+  }
+  .MuiTablePagination-selectLabel,
+  .MuiTablePagination-displayedRows {
+    font-size: 0.75rem !important;
+  }
+
+  /* Status Chips & Badges */
+  .status-chip {
+    font-size: 10.5px !important;
+    padding: 3px 8px !important;
   }
 }
 
