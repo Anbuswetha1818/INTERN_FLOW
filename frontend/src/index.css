@@ -1192,11 +1192,6 @@ body {
     padding: 0 8px !important;
   }
 
-  .topbar-search {
-    height: 40px !important;
-    font-size: 13px !important;
-  }
-
   .hero-value {
     font-size: 24px !important;
   }
@@ -1268,14 +1263,9 @@ img {
   transition: .25s;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .topbar-search {
-    height: 38px !important;
-    padding: 0 10px !important;
-  }
-
-  .topbar-search input {
-    font-size: 13px !important;
+    display: none !important;
   }
 }
 

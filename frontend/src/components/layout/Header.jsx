@@ -102,7 +102,9 @@ export default function Header({ basePath = '', onToggleSidebar }) {
           </Typography>
         </Box>
 
-        <GlobalSearch />
+        <Box sx={{ display: { xs: 'none', md: 'block' }, flex: 1, maxWidth: 420 }}>
+          <GlobalSearch />
+        </Box>
       </div>
 
       {/* Right: Actions */}
