@@ -144,7 +144,8 @@ export default function NotificationMenu({ unreadCount, setUnreadCount }) {
         onClose={handleClose}
         PaperProps={{
           sx: { 
-            width: 360, 
+            width: { xs: 'calc(100vw - 32px)', sm: 360 },
+            maxWidth: '100vw', 
             maxHeight: isElongated ? '80vh' : 500, 
             mt: 1, 
             borderRadius: 3, 

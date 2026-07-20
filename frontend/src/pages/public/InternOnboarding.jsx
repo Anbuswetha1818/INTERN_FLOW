@@ -143,7 +143,7 @@ export default function InternOnboarding() {
         </Box>
 
         <Paper sx={{ p: { xs: 2.5, sm: 4 }, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
-          <Stepper activeStep={activeStep} sx={{ mb: 6 }}>
+          <Stepper activeStep={activeStep} sx={{ mb: { xs: 3, sm: 6 }, overflowX: 'auto', py: 1, '& .MuiStepLabel-label': { fontSize: { xs: '0.8rem', sm: '0.875rem' } } }}>
             {steps.map((label) => <Step key={label}><StepLabel>{label}</StepLabel></Step>)}
           </Stepper>
 

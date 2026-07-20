@@ -175,10 +175,69 @@ export default function LoginPage() {
             </form>
 
           {/* Simple Clean Demo Helper */}
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-              Demo Login: <Typography component="span" variant="caption" sx={{ color: '#0EA5E9', cursor: 'pointer', fontWeight: 700 }} onClick={() => { setUsername('ADM0001'); setPassword('InternFlow@123'); }}>Admin</Typography> &middot; <Typography component="span" variant="caption" sx={{ color: '#0EA5E9', cursor: 'pointer', fontWeight: 700 }} onClick={() => { setUsername('manager'); setPassword('InternFlow@123'); }}>Manager</Typography> &middot; <Typography component="span" variant="caption" sx={{ color: '#0EA5E9', cursor: 'pointer', fontWeight: 700 }} onClick={() => { setUsername('INT001'); setPassword('InternFlow@123'); }}>Intern</Typography>
+          <Box sx={{ mt: 2.5, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+              Demo Login Credentials:
             </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1, mt: 0.5 }}>
+              <Typography 
+                component="span" 
+                variant="caption" 
+                sx={{ 
+                  color: '#0EA5E9', 
+                  bgcolor: 'rgba(14, 165, 233, 0.08)',
+                  px: 1.2, py: 0.4, 
+                  borderRadius: 1.5,
+                  cursor: 'pointer', 
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  border: '1px solid rgba(14, 165, 233, 0.2)',
+                  transition: 'all 0.2s',
+                  '&:hover': { bgcolor: 'rgba(14, 165, 233, 0.15)' }
+                }} 
+                onClick={() => { setUsername('ADM0001'); setPassword('InternFlow@123'); }}
+              >
+                Admin
+              </Typography>
+              <Typography 
+                component="span" 
+                variant="caption" 
+                sx={{ 
+                  color: '#0EA5E9', 
+                  bgcolor: 'rgba(14, 165, 233, 0.08)',
+                  px: 1.2, py: 0.4, 
+                  borderRadius: 1.5,
+                  cursor: 'pointer', 
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  border: '1px solid rgba(14, 165, 233, 0.2)',
+                  transition: 'all 0.2s',
+                  '&:hover': { bgcolor: 'rgba(14, 165, 233, 0.15)' }
+                }} 
+                onClick={() => { setUsername('manager'); setPassword('InternFlow@123'); }}
+              >
+                Manager
+              </Typography>
+              <Typography 
+                component="span" 
+                variant="caption" 
+                sx={{ 
+                  color: '#0EA5E9', 
+                  bgcolor: 'rgba(14, 165, 233, 0.08)',
+                  px: 1.2, py: 0.4, 
+                  borderRadius: 1.5,
+                  cursor: 'pointer', 
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  border: '1px solid rgba(14, 165, 233, 0.2)',
+                  transition: 'all 0.2s',
+                  '&:hover': { bgcolor: 'rgba(14, 165, 233, 0.15)' }
+                }} 
+                onClick={() => { setUsername('INT001'); setPassword('InternFlow@123'); }}
+              >
+                Intern
+              </Typography>
+            </Box>
           </Box>
 
           <Box sx={{ mt: 2, textAlign: 'center' }}>

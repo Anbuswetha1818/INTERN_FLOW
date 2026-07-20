@@ -108,7 +108,21 @@ export default function GlobalSearch() {
   }, [query, user]);
 
   return (
-    <Box sx={{ flex: 1, minWidth: 0, maxWidth: { xs: 140, sm: 260, md: 420 }, position: 'relative' }} ref={anchorRef}>
+    <Box
+      ref={anchorRef}
+      sx={{
+        flex: 1,
+        width: '100%',
+        minWidth: 0,
+        maxWidth: {
+          xs: '100%',
+          sm: 320,
+          md: 420,
+          lg: 520,
+        },
+        position: 'relative',
+      }}
+    >
       <div 
         className="topbar-search" 
         style={{ 
@@ -118,6 +132,7 @@ export default function GlobalSearch() {
       >
         <SearchIcon style={{ fontSize: '16px', color: 'var(--text-secondary)' }} />
         <InputBase
+          fullWidth
           placeholder="Search..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -137,11 +152,24 @@ export default function GlobalSearch() {
         />
       </div>
 
-      <Popper 
-        open={open} 
-        anchorEl={anchorRef.current} 
-        placement="bottom-start" 
-        style={{ zIndex: 1300, width: anchorRef.current?.offsetWidth }}
+      <Popper
+        open={open}
+        anchorEl={anchorRef.current}
+        placement="bottom-start"
+        modifiers={[
+          {
+            name: "offset",
+            options: {
+              offset: [0, 8],
+            },
+          },
+        ]}
+        style={{
+          zIndex: 1400,
+          width: anchorRef.current
+            ? anchorRef.current.clientWidth
+            : undefined,
+        }}
       >
         <Paper 
           elevation={8} 
@@ -165,10 +193,13 @@ export default function GlobalSearch() {
                   key={res.id} 
                   sx={{ 
                     borderBottom: idx !== results.length - 1 ? '1px solid var(--border-subtle)' : 'none',
-                    py: 1.5,
-                    transition: 'all var(--transition-fast)',
-                    '&:hover': {
-                      background: 'var(--bg-hover)',
+                    py: 1.2,
+                    px: 2,
+                    alignItems: "flex-start",
+                    cursor: "pointer",
+                    transition: "0.25s",
+                    "&:hover": {
+                      bgcolor: "var(--bg-hover)",
                       '& .MuiListItemText-primary': {
                         color: 'var(--text-primary)',
                       }

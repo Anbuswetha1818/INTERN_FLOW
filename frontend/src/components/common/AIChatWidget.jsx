@@ -34,15 +34,15 @@ export default function AIChatWidget() {
   return (
     <>
       {/* Floating Action Button */}
-      <Box sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999 }}>
+      <Box sx={{ position: 'fixed', bottom: { xs: 16, sm: 24 }, right: { xs: 16, sm: 24 }, zIndex: 9999 }}>
         <IconButton 
           color="primary" 
           onClick={() => setIsOpen(true)}
           sx={{ 
             bgcolor: 'primary.main', 
             color: 'white', 
-            width: 56, 
-            height: 56, 
+            width: { xs: 48, sm: 56 }, 
+            height: { xs: 48, sm: 56 }, 
             boxShadow: '0 8px 16px rgba(37, 99, 235, 0.25)',
             '&:hover': { bgcolor: 'primary.dark' },
             display: isOpen ? 'none' : 'flex'
@@ -59,13 +59,14 @@ export default function AIChatWidget() {
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 10000 }}
+            style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 10000 }}
           >
             <Paper 
               elevation={24} 
               sx={{ 
-                width: 350, 
-                height: 500, 
+                width: { xs: 'calc(100vw - 32px)', sm: 350 }, 
+                height: { xs: '75vh', sm: 500 },
+                maxHeight: 520, 
                 display: 'flex', 
                 flexDirection: 'column', 
                 borderRadius: 4, 

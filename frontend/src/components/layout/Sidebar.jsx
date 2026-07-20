@@ -14,7 +14,7 @@ import { useState, useEffect } from 'react';
 import { 
   Box, Typography, Tooltip, Dialog, DialogTitle, DialogContent, 
   DialogActions, Button, FormControl, InputLabel, Select, MenuItem, 
-  Alert, CircularProgress, Grid 
+  Alert, CircularProgress, Grid, IconButton
 } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 import {
@@ -24,7 +24,7 @@ import {
   Task, CalendarMonth, SmartToy, TrendingUp,
   FolderSpecial, Workspaces, Approval, Verified,
   AccountBalance, Domain, SupervisedUserCircle, LaptopMac,
-  CloudUpload, Webhook, SwapHoriz
+  CloudUpload, Webhook, SwapHoriz, Close as CloseIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -228,13 +228,13 @@ export default function Sidebar({ type = 'admin', basePath = '', collapsed = fal
       <aside className={`dashboard-sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'open' : ''}`}>
         <div className="brand" style={{ 
             display: 'flex', 
-            justifyContent: 'center', 
+            justify: collapsed ? 'center' : 'space-between', 
             alignItems: 'center', 
-            padding: '20px 8px 16px' 
+            padding: '16px 16px 14px' 
           }}
         >
           {!collapsed && (
-            <div className="brand-text" style={{ textAlign: 'center' }}>
+            <div className="brand-text" style={{ textAlign: 'left' }}>
               <div className="brand-name" style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
                 Intern<span style={{ color: '#0EA5E9' }}>Flow</span>
               </div>
@@ -244,6 +244,16 @@ export default function Sidebar({ type = 'admin', basePath = '', collapsed = fal
             <div className="brand-name" style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>
               IF
             </div>
+          )}
+          {/* Mobile Close Button */}
+          {mobileOpen && (
+            <IconButton 
+              onClick={onClose}
+              size="small"
+              sx={{ display: { md: 'none' }, color: 'var(--text-secondary)' }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
           )}
         </div>
 

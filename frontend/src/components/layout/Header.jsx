@@ -82,19 +82,42 @@ export default function Header({ basePath = '', onToggleSidebar }) {
   return (
     <div className="dashboard-header">
       {/* Left: Menu toggle + Search */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          flex: 1,
+          minWidth: 0,
+          overflow: "hidden"
+        }}
+      >
         <IconButton onClick={onToggleSidebar} sx={{ display: { md: 'none' }, color: 'var(--text-primary)', p: { xs: 0.5, sm: 1 } }}>
           <MenuIcon />
         </IconButton>
+
+        <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', mr: 0.5, flexShrink: 0 }} onClick={() => navigate('/')}>
+          <Typography variant="h6" fontWeight={800} sx={{ fontSize: '1.05rem', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+            Intern<span style={{ color: '#0EA5E9' }}>Flow</span>
+          </Typography>
+        </Box>
 
         <GlobalSearch />
       </div>
 
       {/* Right: Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          flexShrink: 0,
+          whiteSpace: "nowrap"
+        }}
+      >
 
         {user?.role === 'superadmin' && (
-          <FormControl size="small" sx={{ minWidth: { xs: 110, sm: 150 } }}>
+          <FormControl size="small" sx={{ minWidth: { xs: 90, sm: 120, md: 160 } }}>
             <Select
               value={(entities.find(e => String(e.id) === String(user.entityId))?.name === 'InternFlow') ? 'all' : (user.entityId || 'all')}
               onChange={handleEntityChange}
@@ -131,12 +154,32 @@ export default function Header({ basePath = '', onToggleSidebar }) {
         <div
           className="topbar-user"
           onClick={(e) => setAnchorEl(e.currentTarget)}
-          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            minWidth: 0,
+            maxWidth: "220px",
+            overflow: "hidden",
+            cursor: "pointer"
+          }}
         >
           <div className="avatar-topbar">
             {user.fullName?.charAt(0) || user.username?.charAt(0) || '?'}
           </div>
-          <Box className="topbar-user-text" sx={{ display: { xs: 'none', sm: 'block' } }}>
+          <Box
+            className="topbar-user-text"
+            sx={{
+              display: {
+                xs: "none",
+                sm: "block"
+              },
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              minWidth: 0
+            }}
+          >
             <div className="topbar-user-name">{user.fullName || user.username}</div>
             {(!user?.fullName || user.fullName.toLowerCase() !== (user?.role === 'superadmin' ? 'super admin' : user?.role)?.toLowerCase()) && (
               <div className="topbar-user-role">
