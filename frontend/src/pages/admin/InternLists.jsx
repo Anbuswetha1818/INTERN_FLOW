@@ -12,6 +12,95 @@ import PromotionModal from '../../components/common/PromotionModal';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 
+function InternCard({ row, readOnly, userRole, handleOpenEdit, setDeleteDialog, setDetailsDialog }) {
+  return (
+    <Box 
+      className="glass-card"
+      sx={{ 
+        p: 2, 
+        mb: 2, 
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1.5,
+        border: '1px solid var(--glass-border, rgba(255, 255, 255, 0.3))',
+        background: 'var(--glass-bg, rgba(255, 255, 255, 0.6))',
+        boxShadow: 'var(--glass-shadow, 0 4px 12px rgba(0,0,0,0.05))',
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box 
+            sx={{ 
+              width: 36, height: 36, borderRadius: '50%', 
+              background: 'var(--gradient-primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontWeight: 700, fontSize: '0.8rem'
+            }}
+          >
+            {row.full_name?.charAt(0) || 'I'}
+          </Box>
+          <Box>
+            <Typography fontWeight={700} variant="subtitle1" sx={{ lineHeight: 1.2 }}>{row.full_name}</Typography>
+            <Typography variant="caption" color="text.secondary">{row.emp_id}</Typography>
+          </Box>
+        </Box>
+        {!readOnly && (userRole === 'admin' || userRole === 'superadmin') && (
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleOpenEdit(row); }}>
+              <Edit fontSize="small" color="primary" />
+            </IconButton>
+            <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); setDeleteDialog({ open: true, empId: row.emp_id, name: row.full_name }); }}>
+              <Delete fontSize="small" />
+            </IconButton>
+          </Box>
+        )}
+      </Box>
+
+      <Grid container spacing={2}>
+        <Grid item xs={6}>
+          <Typography variant="caption" color="text.secondary" display="block">Domain</Typography>
+          <Typography variant="body2" fontWeight={600}>{row.domain_name || 'N/A'}</Typography>
+          <Typography variant="caption" color="text.secondary">{row.scheme?.toUpperCase()} Scheme</Typography>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography variant="caption" color="text.secondary" display="block">Status</Typography>
+          <Box sx={{ mt: 0.5 }}>
+            <StatusChip status={row.user_status} />
+          </Box>
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="caption" color="text.secondary" display="block">Contact</Typography>
+          <Typography variant="body2" fontWeight={500} sx={{ wordBreak: 'break-all' }}>{row.email}</Typography>
+          <Typography variant="caption" color="text.secondary">{row.phone || 'No phone'}</Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="caption" color="text.secondary" display="block">Timeline</Typography>
+          <Typography variant="body2" fontWeight={500}>From: {row.start_date || '—'}</Typography>
+          <Typography variant="body2" fontWeight={500}>To: {row.end_date || '—'}</Typography>
+        </Grid>
+      </Grid>
+
+      <Button 
+        variant="contained" 
+        color="primary"
+        size="small" 
+        onClick={() => setDetailsDialog({ open: true, intern: row })}
+        sx={{ 
+          textTransform: 'none', 
+          fontWeight: 600, 
+          borderRadius: '6px',
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: 'none',
+          }
+        }}
+      >
+        Details
+      </Button>
+    </Box>
+  );
+}
+
 export default function InternLists({ readOnly = false, isCombined = false }) {
   const { user } = useAuth();
   const location = useLocation();
@@ -316,8 +405,21 @@ export default function InternLists({ readOnly = false, isCombined = false }) {
 
 
         {/* Toolbar */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 3, flexWrap: 'wrap', gap: 2 }}>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: { xs: 'stretch', md: 'center' }, 
+          p: 3, 
+          flexDirection: { xs: 'column', md: 'row' }, 
+          gap: 2 
+        }}>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1.5, 
+            flexWrap: 'wrap', 
+            flex: 1, 
+            width: '100%' 
+          }}>
             <TextField
               size="small"
               placeholder="Search interns by name, ID, domain..."
@@ -328,9 +430,12 @@ export default function InternLists({ readOnly = false, isCombined = false }) {
                   startAdornment: <InputAdornment position="start"><Search fontSize="small" /></InputAdornment>,
                 }
               }}
-              sx={{ minWidth: 300 }}
+              sx={{ 
+                flex: { xs: '1 1 100%', sm: '1 1 200px' }, 
+                width: { xs: '100%', sm: 'auto' } 
+              }}
             />
-            <FormControl size="small" sx={{ minWidth: 150 }}>
+            <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 6px)', sm: '0 0 150px' }, minWidth: { xs: '0', sm: 150 } }}>
               <InputLabel>Status Filter</InputLabel>
               <Select value={tabValue} label="Status Filter" onChange={(e) => setTabValue(e.target.value)}>
                 <MenuItem value={0}>All ({interns.filter(i => i.user_status !== 'yettojoin').length})</MenuItem>
@@ -342,7 +447,7 @@ export default function InternLists({ readOnly = false, isCombined = false }) {
                 <MenuItem value={2}>Other</MenuItem>
               </Select>
             </FormControl>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
+            <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 6px)', sm: '0 0 150px' }, minWidth: { xs: '0', sm: 150 } }}>
               <InputLabel>Domain Filter</InputLabel>
               <Select 
                 value={domainFilter} 
@@ -356,9 +461,9 @@ export default function InternLists({ readOnly = false, isCombined = false }) {
               </Select>
             </FormControl>
             {!readOnly && selected.length > 0 && (
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', bgcolor: 'primary.50', p: 0.5, borderRadius: 1, px: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', bgcolor: 'primary.50', p: 0.5, borderRadius: 1, px: 2, flex: { xs: '1 1 100%', sm: 'none' } }}>
                 <Typography variant="body2" fontWeight={600} color="primary">{selected.length} selected</Typography>
-                <FormControl size="small" sx={{ minWidth: 150 }}>
+                <FormControl size="small" sx={{ minWidth: 120 }}>
                   <InputLabel>Bulk Action</InputLabel>
                   <Select value={bulkAction} label="Bulk Action" onChange={(e) => setBulkAction(e.target.value)}>
                     <MenuItem value="active">Mark Active</MenuItem>
@@ -370,23 +475,36 @@ export default function InternLists({ readOnly = false, isCombined = false }) {
               </Box>
             )}
           </Box>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1.5, 
+            flexWrap: 'wrap', 
+            width: { xs: '100%', md: 'auto' } 
+          }}>
             <Button 
               variant="outlined" 
               startIcon={<Upload />} 
               onClick={() => document.getElementById('intern-csv-upload').click()}
               disabled={importing}
+              sx={{ flex: { xs: 1, sm: 'none' }, whiteSpace: 'nowrap' }}
             >
               {importing ? 'Importing...' : 'Import CSV'}
             </Button>
             <input type="file" id="intern-csv-upload" hidden accept=".csv" onChange={handleFileChange} />
             
-            <Button variant="outlined" startIcon={<Download />} onClick={handleExport}>Export</Button>
+            <Button 
+              variant="outlined" 
+              startIcon={<Download />} 
+              onClick={handleExport}
+              sx={{ flex: { xs: 1, sm: 'none' }, whiteSpace: 'nowrap' }}
+            >
+              Export
+            </Button>
           </Box>
         </Box>
         
-        {/* Table */}
-        <TableContainer sx={!isCombined ? { maxHeight: 'calc(100vh - 280px)', overflow: 'auto', pt: 0, mt: 0 } : { pt: 0, mt: 0 }}>
+        {/* Desktop Table View */}
+        <TableContainer sx={!isCombined ? { maxHeight: 'calc(100vh - 280px)', overflow: 'auto', pt: 0, mt: 0, display: { xs: 'none', md: 'block' } } : { pt: 0, mt: 0, display: { xs: 'none', md: 'block' } }}>
           <Table stickyHeader={!isCombined} sx={{ mt: 0, pt: 0, borderCollapse: 'collapse' }}>
             <TableHead>
               <TableRow>
@@ -488,8 +606,29 @@ export default function InternLists({ readOnly = false, isCombined = false }) {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Mobile Card View */}
+        <Box sx={{ display: { xs: 'block', md: 'none' }, p: 2 }}>
+          {filteredInterns.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).length > 0 ? 
+            filteredInterns.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
+              <InternCard 
+                key={row.emp_id} 
+                row={row} 
+                readOnly={readOnly}
+                userRole={user?.role}
+                handleOpenEdit={handleOpenEdit}
+                setDeleteDialog={setDeleteDialog}
+                setDetailsDialog={setDetailsDialog}
+              />
+            )) : (
+              <Box sx={{ py: 4, textAlign: 'center' }}>
+                <Typography color="text.secondary">No interns found matching your criteria</Typography>
+              </Box>
+            )}
+        </Box>
+
         <TablePagination
-          sx={{ '& .MuiTablePagination-toolbar': { pr: 10 } }}
+          sx={{ '& .MuiTablePagination-toolbar': { pr: { xs: 2, sm: 10 } } }}
           rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
           count={filteredInterns.length}
