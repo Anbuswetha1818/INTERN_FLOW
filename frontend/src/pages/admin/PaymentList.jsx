@@ -12,6 +12,74 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import QRCode from 'react-qr-code';
 
+function PaymentCard({ row, canEdit, getStatusColor, handleOpenVerify }) {
+  return (
+    <Box 
+      className="glass-card"
+      sx={{ 
+        p: 2, 
+        mb: 2, 
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1.5,
+        border: '1px solid var(--glass-border, rgba(255, 255, 255, 0.3))',
+        background: 'var(--glass-bg, rgba(255, 255, 255, 0.6))',
+        boxShadow: 'var(--glass-shadow, 0 4px 12px rgba(0,0,0,0.05))',
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Box>
+          <Typography variant="subtitle1" fontWeight={700} sx={{ lineHeight: 1.2 }}>
+            {row.full_name || row.emp_id}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {row.emp_id}
+          </Typography>
+        </Box>
+        {canEdit && (
+          <IconButton size="small" color="primary" title="View details" onClick={() => handleOpenVerify(row)} sx={{ border: '1px solid var(--border-subtle)', borderRadius: '4px' }}>
+            <ReceiptLong fontSize="small" />
+          </IconButton>
+        )}
+      </Box>
+
+      <Grid container spacing={2}>
+        <Grid item xs={6}>
+          <Typography variant="caption" color="text.secondary" display="block">Payment Type</Typography>
+          <Box sx={{ mt: 0.5 }}>
+            {row.payment_type === 'part' ? (
+              <Chip label={`Installment ${row.installment_number}`} size="small" color="secondary" variant="outlined" />
+            ) : (
+              <Chip label="Full Payment" size="small" color="primary" variant="outlined" />
+            )}
+          </Box>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography variant="caption" color="text.secondary" display="block">Status</Typography>
+          <Box sx={{ mt: 0.5 }}>
+            <Chip 
+              label={row.status.toUpperCase()} 
+              size="small" 
+              color={getStatusColor(row.status)} 
+              variant="outlined"
+            />
+          </Box>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography variant="caption" color="text.secondary" display="block">Amount</Typography>
+          <Typography variant="body2" fontWeight={700}>₹{row.amount}</Typography>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography variant="caption" color="text.secondary" display="block">Transaction ID</Typography>
+          <Typography fontWeight={700} variant="body2" color="primary" sx={{ wordBreak: 'break-all' }}>
+            {row.transaction_id || '-'}
+          </Typography>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+}
+
 export default function PaymentList() {
   const { user, permissions } = useAuth();
   const { showToast } = useToast();
@@ -271,9 +339,15 @@ export default function PaymentList() {
         </Box>
       )}
 
-      {/* Payment List */}
       <Box className="glass-card" sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: { xs: 'stretch', md: 'center' }, 
+          mb: 3, 
+          flexDirection: { xs: 'column', md: 'row' }, 
+          gap: 2 
+        }}>
           <TextField
             size="small"
             placeholder="Search by ID or Intern Name..."
@@ -284,14 +358,23 @@ export default function PaymentList() {
                 startAdornment: <InputAdornment position="start"><Search fontSize="small" /></InputAdornment>,
               }
             }}
-            sx={{ minWidth: 300 }}
+            sx={{ 
+              flex: { xs: '1 1 100%', sm: '1 1 200px' }, 
+              width: { xs: '100%', sm: 'auto' } 
+            }}
           />
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1.5, 
+            flexWrap: 'wrap', 
+            width: { xs: '100%', md: 'auto' } 
+          }}>
             <Button 
               variant="outlined" 
               startIcon={<Upload />} 
               onClick={() => document.getElementById('payment-csv-upload').click()}
               disabled={importing}
+              sx={{ flex: { xs: 1, sm: 'none' }, whiteSpace: 'nowrap' }}
             >
               {importing ? 'Importing...' : 'Import CSV'}
             </Button>
@@ -299,13 +382,13 @@ export default function PaymentList() {
             
             <CSVLink 
               data={payments.filter(p => 
-                p.intern_name?.toLowerCase().includes(search.toLowerCase()) ||
+                (p.full_name || p.intern_name || '').toLowerCase().includes(search.toLowerCase()) ||
                 p.emp_id?.toLowerCase().includes(search.toLowerCase())
               )} 
               filename="payments_export.csv" 
-              style={{ textDecoration: 'none' }}
+              style={{ textDecoration: 'none', flex: 1, display: 'inline-block' }}
             >
-              <Button variant="outlined" startIcon={<Download />}>
+              <Button variant="outlined" startIcon={<Download />} sx={{ width: '100%', whiteSpace: 'nowrap' }}>
                 Export CSV
               </Button>
             </CSVLink>
@@ -314,6 +397,7 @@ export default function PaymentList() {
                 variant="contained"
                 color="primary"
                 onClick={handleOpenRequestDialog}
+                sx={{ flex: { xs: '1 1 100%', sm: 'none' }, whiteSpace: 'nowrap' }}
               >
                 Request Payment
               </Button>
@@ -321,7 +405,8 @@ export default function PaymentList() {
           </Box>
         </Box>
         
-        <TableContainer component={Paper} elevation={0} sx={{ background: 'transparent' }}>
+        {/* Desktop Table View */}
+        <TableContainer component={Paper} elevation={0} sx={{ background: 'transparent', display: { xs: 'none', md: 'block' } }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -336,11 +421,11 @@ export default function PaymentList() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center"><CircularProgress size={30} sx={{ my: 2 }} /></TableCell>
+                  <TableCell colSpan={canEdit ? 6 : 5} align="center"><CircularProgress size={30} sx={{ my: 2 }} /></TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={canEdit ? 6 : 5} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">No transactions found.</Typography>
                   </TableCell>
                 </TableRow>
@@ -383,6 +468,26 @@ export default function PaymentList() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Mobile Card View */}
+        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress size={30} />
+            </Box>
+          ) : filtered.length === 0 ? (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <Typography color="text.secondary">No transactions found.</Typography>
+            </Box>
+          ) : filtered.map((row) => (
+            <PaymentCard 
+              key={row.id} 
+              row={row} 
+              canEdit={canEdit}
+              getStatusColor={getStatusColor}
+            />
+          ))}
+        </Box>
       </Box>
 
       {/* Verification Dialog */}
