@@ -222,12 +222,15 @@ export default function UserProfile() {
               p: 4, 
               color: '#fff', 
               display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
               justifyContent: 'space-between', 
               alignItems: 'center',
-              boxShadow: '0 4px 20px rgba(27, 115, 232, 0.15)'
+              boxShadow: '0 4px 20px rgba(27, 115, 232, 0.15)',
+              textAlign: { xs: 'center', sm: 'left' },
+              gap: { xs: 3, sm: 0 }
             }}
           >
-            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexDirection: { xs: 'column', sm: 'row' } }}>
               <Box sx={{ position: 'relative' }}>
                 <Avatar 
                   src={profile.photo || ''} 
@@ -268,8 +271,8 @@ export default function UserProfile() {
                   {uploading ? <CircularProgress size={14} color="primary" /> : <PhotoCamera sx={{ fontSize: 16 }} />}
                 </IconButton>
               </Box>
-              <Box>
-                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', mb: 0.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'center', sm: 'flex-start' } }}>
+                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', mb: 0.5, flexDirection: { xs: 'column', sm: 'row' } }}>
                   <Typography variant="h5" fontWeight={700}>
                     {profile.full_name || profile.username || 'User'}
                   </Typography>
@@ -285,8 +288,10 @@ export default function UserProfile() {
                     }} 
                   />
                 </Box>
-                <Typography sx={{ opacity: 0.9, fontSize: '0.9rem' }}>
-                  {profile.email} &middot; {profile.entity_name || 'InternFlow Digital'}
+                <Typography sx={{ opacity: 0.9, fontSize: '0.9rem', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', gap: { xs: 0.5, sm: 1 }, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
+                  <Box component="span">{profile.email}</Box>
+                  <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>&middot;</Box>
+                  <Box component="span">{profile.entity_name || 'InternFlow Digital'}</Box>
                 </Typography>
               </Box>
             </Box>
