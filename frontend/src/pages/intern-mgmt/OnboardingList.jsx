@@ -9,6 +9,93 @@ import { onboardingAPI } from '../../services/api';
 import { LoadingSpinner, StatusChip } from '../../components/common';
 import { motion } from 'framer-motion';
 
+function OnboardingCard({ row, handleApprove, handleReject, handleResend, processingId }) {
+  return (
+    <Box 
+      className="glass-card"
+      sx={{ 
+        p: 2, 
+        mb: 2, 
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1.5,
+        border: '1px solid var(--glass-border, rgba(255, 255, 255, 0.3))',
+        background: 'var(--glass-bg, rgba(255, 255, 255, 0.6))',
+        boxShadow: 'var(--glass-shadow, 0 4px 12px rgba(0,0,0,0.05))',
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Box>
+          <Typography variant="subtitle1" fontWeight={700} sx={{ lineHeight: 1.2 }}>
+            {row.full_name}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {row.email} | {row.phone}
+          </Typography>
+        </Box>
+        <Box sx={{ mt: 0.5 }}>
+          <StatusChip status={row.status} />
+        </Box>
+      </Box>
+
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Typography variant="caption" color="text.secondary" display="block">Academics</Typography>
+          <Typography variant="body2" fontWeight={600}>{row.degree} - {row.college_department}</Typography>
+          <Typography variant="caption" color="text.secondary">{row.college_name} ({row.year_of_passing})</Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="caption" color="text.secondary" display="block">Internship Config</Typography>
+          <Typography variant="body2" fontWeight={600}>{row.domain_name || 'No Domain'}</Typography>
+          <Typography variant="caption" color="text.secondary">
+            {row.start_date} to {row.end_date} | {row.scheme?.toUpperCase()}
+          </Typography>
+        </Grid>
+      </Grid>
+
+      <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+        {row.status === 'pending' ? (
+          <>
+            <Button 
+              size="small" 
+              variant="contained" 
+              color="success" 
+              startIcon={<CheckCircle />}
+              onClick={() => handleApprove(row.id, row.email)}
+              disabled={processingId === row.id}
+              sx={{ textTransform: 'none', fontWeight: 600 }}
+            >
+              {processingId === row.id ? 'Approving...' : 'Approve'}
+            </Button>
+            <Button 
+              size="small" 
+              variant="outlined" 
+              color="error" 
+              startIcon={<Block />}
+              onClick={() => handleReject(row.id)}
+              disabled={processingId === row.id}
+              sx={{ textTransform: 'none', fontWeight: 600 }}
+            >
+              Reject
+            </Button>
+          </>
+        ) : row.status === 'approved' ? (
+          <Button 
+            size="small" 
+            variant="outlined" 
+            startIcon={<Email />}
+            onClick={() => handleResend(row.emp_id)}
+            disabled={processingId === row.emp_id}
+            sx={{ textTransform: 'none', fontWeight: 600, width: '100%' }}
+          >
+            Resend Credentials
+          </Button>
+        ) : null}
+      </Box>
+    </Box>
+  );
+}
+
 export default function OnboardingList({ isCombined }) {
   const [onboardingData, setOnboardingData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -124,32 +211,42 @@ export default function OnboardingList({ isCombined }) {
 
 
         {/* Toolbar */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', p: 3, flexWrap: 'wrap', gap: 2 }}>
-            <TextField
-              size="small"
-              placeholder="Search by name, email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              slotProps={{
-                input: {
-                  startAdornment: <InputAdornment position="start"><Search fontSize="small" /></InputAdornment>,
-                }
-              }}
-              sx={{ minWidth: 300 }}
-            />
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>Status Filter</InputLabel>
-              <Select value={tabValue} label="Status Filter" onChange={(e) => setTabValue(e.target.value)}>
-                <MenuItem value={0}>Pending ({onboardingData.filter(i => i.status === 'pending').length})</MenuItem>
-                <MenuItem value={1}>Approved ({onboardingData.filter(i => i.status === 'approved').length})</MenuItem>
-                <MenuItem value={2}>Rejected ({onboardingData.filter(i => i.status === 'rejected').length})</MenuItem>
-                <MenuItem value={3}>All ({onboardingData.length})</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'flex-start', 
+          alignItems: { xs: 'stretch', md: 'center' }, 
+          p: 3, 
+          flexDirection: { xs: 'column', md: 'row' }, 
+          gap: 2 
+        }}>
+          <TextField
+            size="small"
+            placeholder="Search by name, email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: <InputAdornment position="start"><Search fontSize="small" /></InputAdornment>,
+              }
+            }}
+            sx={{ 
+              flex: { xs: '1 1 100%', sm: '1 1 200px' }, 
+              width: { xs: '100%', sm: 'auto' } 
+            }}
+          />
+          <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '0 0 150px' }, minWidth: { xs: '0', sm: 150 } }}>
+            <InputLabel>Status Filter</InputLabel>
+            <Select value={tabValue} label="Status Filter" onChange={(e) => setTabValue(e.target.value)}>
+              <MenuItem value={0}>Pending ({onboardingData.filter(i => i.status === 'pending').length})</MenuItem>
+              <MenuItem value={1}>Approved ({onboardingData.filter(i => i.status === 'approved').length})</MenuItem>
+              <MenuItem value={2}>Rejected ({onboardingData.filter(i => i.status === 'rejected').length})</MenuItem>
+              <MenuItem value={3}>All ({onboardingData.length})</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
         
-        {/* Table */}
-        <TableContainer>
+        {/* Desktop Table View */}
+        <TableContainer sx={{ display: { xs: 'none', md: 'block' } }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -229,6 +326,24 @@ export default function OnboardingList({ isCombined }) {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Mobile Card View */}
+        <Box sx={{ display: { xs: 'block', md: 'none' }, p: 2 }}>
+          {filteredData.length > 0 ? filteredData.map((row) => (
+            <OnboardingCard 
+              key={row.id} 
+              row={row} 
+              handleApprove={handleApprove}
+              handleReject={handleReject}
+              handleResend={handleResend}
+              processingId={processingId}
+            />
+          )) : (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <Typography color="text.secondary">No applications found.</Typography>
+            </Box>
+          )}
+        </Box>
       </Box>
 
       <Snackbar 
