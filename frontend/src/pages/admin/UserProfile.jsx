@@ -300,7 +300,7 @@ export default function UserProfile() {
           {/* Three Summary Cards (No Role/Entity/Email duplication) */}
           <Grid container spacing={3}>
             <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
+              <Paper sx={{ p: 3, width: '100%', borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
                 <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.75rem', mb: 1, fontWeight: 600, textTransform: 'uppercase' }}>
                   Employee ID
                 </Typography>
@@ -310,7 +310,7 @@ export default function UserProfile() {
               </Paper>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
+              <Paper sx={{ p: 3, width: '100%', borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
                 <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.75rem', mb: 1, fontWeight: 600, textTransform: 'uppercase' }}>
                   Organization Assignment
                 </Typography>
@@ -323,7 +323,7 @@ export default function UserProfile() {
               </Paper>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
+              <Paper sx={{ p: 3, width: '100%', borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
                 <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.75rem', mb: 1, fontWeight: 600, textTransform: 'uppercase' }}>
                   Account Status
                 </Typography>
