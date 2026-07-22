@@ -142,10 +142,38 @@ export default function InternOnboarding() {
           <Typography color="text.secondary">Complete your profile to generate your admission ID.</Typography>
         </Box>
 
-        <Paper sx={{ p: { xs: 2.5, sm: 4 }, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
-          <Stepper activeStep={activeStep} sx={{ mb: { xs: 3, sm: 6 }, overflowX: 'auto', py: 1, '& .MuiStepLabel-label': { fontSize: { xs: '0.8rem', sm: '0.875rem' } } }}>
+        <Paper sx={{ p: { xs: 2, sm: 4 }, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
+          <Stepper 
+            activeStep={activeStep} 
+            sx={{ 
+              mb: { xs: 3, sm: 6 }, 
+              py: 1, 
+              '& .MuiStepLabel-label': { 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                display: { xs: 'none', sm: 'block' }
+              },
+              '& .MuiStepConnector-root': {
+                mx: { xs: 1, sm: 2 }
+              }
+            }}
+          >
             {steps.map((label) => <Step key={label}><StepLabel>{label}</StepLabel></Step>)}
           </Stepper>
+
+          {activeStep < 3 && (
+            <Typography 
+              variant="subtitle1" 
+              fontWeight={700} 
+              align="center" 
+              sx={{ 
+                mb: 3, 
+                display: { xs: 'block', sm: 'none' },
+                color: 'primary.main'
+              }}
+            >
+              Step {activeStep + 1}: {steps[activeStep]}
+            </Typography>
+          )}
 
           {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
