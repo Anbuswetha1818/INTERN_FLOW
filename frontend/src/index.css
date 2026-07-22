@@ -723,6 +723,7 @@ body {
   border-bottom: 1px solid var(--border-subtle) !important;
   padding: 8px 32px !important;
   left: 252px !important;
+  width: calc(100% - 252px) !important;
   height: 60px !important;
   position: fixed !important;
   top: 0 !important;
