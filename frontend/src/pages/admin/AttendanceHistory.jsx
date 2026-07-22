@@ -3,7 +3,7 @@ import {
   Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Button, IconButton, TextField, InputAdornment, 
   FormControl, InputLabel, Select, MenuItem,
-  Dialog, DialogTitle, DialogContent, DialogActions
+  Dialog, DialogTitle, DialogContent, DialogActions, Grid, Chip
 } from '@mui/material';
 import { Search, Download, CalendarToday, Refresh, Edit } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -11,6 +11,95 @@ import { usersAPI, attendanceAPI, orgAPI } from '../../services/api';
 import { LoadingSpinner, StatusChip } from '../../components/common';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
+
+function AttendanceCard({ row, record, todayStatus, userRole, handleOpenEdit, renderTimeline }) {
+  return (
+    <Box 
+      className="glass-card"
+      sx={{ 
+        p: 2, 
+        mb: 2, 
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1.5,
+        border: '1px solid var(--glass-border, rgba(255, 255, 255, 0.3))',
+        background: 'var(--glass-bg, rgba(255, 255, 255, 0.6))',
+        boxShadow: 'var(--glass-shadow, 0 4px 12px rgba(0,0,0,0.05))',
+      }}
+    >
+      {/* Header: Intern Info and Edit Button */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box 
+            sx={{ 
+              width: 36, height: 36, borderRadius: '50%', 
+              background: 'var(--gradient-primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontWeight: 700, fontSize: '0.8rem'
+            }}
+          >
+            {row.full_name?.charAt(0) || 'I'}
+          </Box>
+          <Box>
+            <Typography fontWeight={700} variant="subtitle1" sx={{ lineHeight: 1.2 }}>{row.full_name}</Typography>
+            <Typography variant="caption" color="text.secondary">{row.emp_id}</Typography>
+          </Box>
+        </Box>
+        {userRole === 'sme' && (
+          <IconButton 
+            size="small" 
+            color="primary" 
+            onClick={() => handleOpenEdit(row, record, todayStatus)}
+            sx={{ border: '1px solid var(--border-subtle)', borderRadius: '4px' }}
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+        )}
+      </Box>
+
+      {/* Details grid */}
+      <Grid container spacing={2}>
+        <Grid item xs={6}>
+          <Typography variant="caption" color="text.secondary" display="block">Domain</Typography>
+          <Typography variant="body2" fontWeight={600}>{row.domain_name || 'N/A'}</Typography>
+          <Typography variant="caption" color="text.secondary">{row.scheme?.toUpperCase()} Scheme</Typography>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography variant="caption" color="text.secondary" display="block">Today's Status</Typography>
+          <Box sx={{ mt: 0.5 }}>
+            <StatusChip status={todayStatus} />
+          </Box>
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="caption" color="text.secondary" display="block">Internship Timeline</Typography>
+          <Typography variant="body2" fontWeight={500}>From: {row.start_date || '—'}</Typography>
+          <Typography variant="body2" fontWeight={500}>To: {row.end_date || '—'}</Typography>
+        </Grid>
+      </Grid>
+
+      {/* Attendance timeline steps */}
+      {todayStatus === 'present' && record && (
+        <Box sx={{ 
+          mt: 1, 
+          p: 1.5, 
+          borderRadius: '8px', 
+          border: '1px solid var(--glass-border, rgba(0, 0, 0, 0.05))',
+          background: 'rgba(0, 0, 0, 0.01)',
+          overflowX: 'auto',
+          width: '100%',
+          boxSizing: 'border-box'
+        }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 600 }}>
+            Timings Timeline:
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            {renderTimeline(record, todayStatus)}
+          </Box>
+        </Box>
+      )}
+    </Box>
+  );
+}
 
 export default function AttendanceHistory() {
   const { user } = useAuth();
@@ -324,9 +413,22 @@ export default function AttendanceHistory() {
       </div>
 
       <Box className="glass-card" sx={{ p: 0, overflow: 'hidden' }}>
-        {/* Toolbar matches the exact style in the screenshot */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 3, flexWrap: 'wrap', gap: 2 }}>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        {/* Toolbar */}
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: { xs: 'stretch', md: 'center' }, 
+          p: 3, 
+          flexDirection: { xs: 'column', md: 'row' }, 
+          gap: 2 
+        }}>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1.5, 
+            flexWrap: 'wrap', 
+            flex: 1, 
+            width: '100%' 
+          }}>
             <TextField
               size="small"
               placeholder="Search interns by name, ID, domain..."
@@ -337,10 +439,13 @@ export default function AttendanceHistory() {
                   startAdornment: <InputAdornment position="start"><Search fontSize="small" /></InputAdornment>,
                 }
               }}
-              sx={{ minWidth: 300 }}
+              sx={{ 
+                flex: { xs: '1 1 100%', sm: '1 1 200px' }, 
+                width: { xs: '100%', sm: 'auto' } 
+              }}
             />
             
-            <FormControl size="small" sx={{ minWidth: 150 }}>
+            <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 6px)', sm: '0 0 150px' }, minWidth: { xs: '0', sm: 150 } }}>
               <InputLabel>Status Filter</InputLabel>
               <Select 
                 value={statusFilter} 
@@ -357,50 +462,82 @@ export default function AttendanceHistory() {
               </Select>
             </FormControl>
 
-            {user?.role !== 'mentor' && (
-              <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>Domain Filter</InputLabel>
-                <Select 
-                  value={domainFilter} 
-                  label="Domain Filter" 
-                  onChange={(e) => setDomainFilter(e.target.value)}
-                >
-                  <MenuItem value="all">All Domains</MenuItem>
-                  {domains.map(d => (
-                    <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+            {user?.role !== 'mentor' ? (
+              <>
+                <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 6px)', sm: '0 0 150px' }, minWidth: { xs: '0', sm: 150 } }}>
+                  <InputLabel>Domain Filter</InputLabel>
+                  <Select 
+                    value={domainFilter} 
+                    label="Domain Filter" 
+                    onChange={(e) => setDomainFilter(e.target.value)}
+                  >
+                    <MenuItem value="all">All Domains</MenuItem>
+                    {domains.map(d => (
+                      <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                
+                <TextField
+                  type="date"
+                  size="small"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CalendarToday fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    }
+                  }}
+                  sx={{ flex: { xs: '1 1 calc(100% - 56px)', sm: '0 0 200px' }, width: { xs: 'calc(100% - 56px)', sm: 'auto' } }}
+                />
+              </>
+            ) : (
+              <TextField
+                type="date"
+                size="small"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CalendarToday fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }
+                }}
+                sx={{ flex: { xs: '1 1 calc(100% - 56px)', sm: '0 0 200px' }, width: { xs: 'calc(100% - 56px)', sm: 'auto' } }}
+              />
             )}
 
-            <TextField
-              type="date"
-              size="small"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CalendarToday fontSize="small" />
-                    </InputAdornment>
-                  ),
-                }
-              }}
-              sx={{ width: 210 }}
-            />
-
-            <IconButton onClick={fetchData} color="primary" sx={{ border: '1px solid var(--border-subtle)', height: 40, width: 40 }}>
+            <IconButton onClick={fetchData} color="primary" sx={{ border: '1px solid var(--border-subtle)', height: 40, width: 40, flexShrink: 0 }}>
               <Refresh fontSize="small" />
             </IconButton>
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button variant="outlined" startIcon={<Download />} onClick={handleExport}>Export</Button>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1.5, 
+            flexWrap: 'wrap', 
+            width: { xs: '100%', md: 'auto' } 
+          }}>
+            <Button 
+              variant="outlined" 
+              startIcon={<Download />} 
+              onClick={handleExport}
+              sx={{ flex: { xs: 1, sm: 'none' }, width: '100%', whiteSpace: 'nowrap' }}
+            >
+              Export
+            </Button>
           </Box>
         </Box>
 
-        <TableContainer>
+        {/* Desktop Table View */}
+        <TableContainer sx={{ display: { xs: 'none', md: 'block' } }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -474,6 +611,29 @@ export default function AttendanceHistory() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Mobile Card View */}
+        <Box sx={{ display: { xs: 'block', md: 'none' }, p: 2 }}>
+          {filteredInterns.length > 0 ? filteredInterns.map((row) => {
+            const record = getRecordForIntern(row.emp_id);
+            const todayStatus = getTodayStatus(row, record);
+            return (
+              <AttendanceCard 
+                key={row.emp_id} 
+                row={row} 
+                record={record}
+                todayStatus={todayStatus}
+                userRole={user?.role}
+                handleOpenEdit={handleOpenEdit}
+                renderTimeline={renderTimeline}
+              />
+            );
+          }) : (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <Typography color="text.secondary">No interns found matching your criteria</Typography>
+            </Box>
+          )}
+        </Box>
       </Box>
 
       <Dialog 
