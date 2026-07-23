@@ -15,7 +15,6 @@ import { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import Header from './Header';
 import Sidebar from './Sidebar';
-import AIChatWidget from '../common/AIChatWidget';
 import { useAuth } from '../../contexts/AuthContext';
 
 /** Maps DB role → sidebar config key */
@@ -54,7 +53,6 @@ export default function DashboardShell({ type, basePath = '', children }) {
       <Box className="dashboard-content">
         {children}
       </Box>
-      <AIChatWidget />
     </Box>
   );
 }
