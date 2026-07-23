@@ -66,7 +66,15 @@ export default function ManagerAssetView() {
       ) : (
         <>
           {/* Equal Fraction Boxes */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
+          <Box 
+            sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }, 
+              gap: '20px', 
+              mb: '24px',
+              width: '100%'
+            }}
+          >
             {[
               { label: 'Total Assets',  value: counts.total || 0,     color: 'var(--color-primary)', icon: <Inventory /> },
               { label: 'Available',     value: counts.available || 0, color: '#22c55e',              icon: <CheckCircle /> },
@@ -75,7 +83,7 @@ export default function ManagerAssetView() {
             ].map((s, i) => (
               <StatCard {...s} delay={i * 0.05} key={i} />
             ))}
-          </div>
+          </Box>
 
           <Box className="glass-card" sx={{ p: 4 }}>
             <Typography variant="h6" fontWeight={700} mb={3} sx={{ fontFamily: '"Poppins", sans-serif' }}>
