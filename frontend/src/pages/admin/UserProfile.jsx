@@ -298,44 +298,46 @@ export default function UserProfile() {
           </Box>
 
           {/* Three Summary Cards (No Role/Entity/Email duplication) */}
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, width: '100%', borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
-                <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.75rem', mb: 1, fontWeight: 600, textTransform: 'uppercase' }}>
-                  Employee ID
+          {/* Three Summary Cards (No Role/Entity/Email duplication) */}
+          <Box 
+            sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, 
+              gap: 3, 
+              width: '100%' 
+            }}
+          >
+            <Paper sx={{ p: 3, width: '100%', borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
+              <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.75rem', mb: 1, fontWeight: 600, textTransform: 'uppercase' }}>
+                Employee ID
+              </Typography>
+              <Typography variant="h6" fontWeight={700} sx={{ color: 'var(--text-primary)' }}>
+                {profile.emp_id || '—'}
+              </Typography>
+            </Paper>
+            <Paper sx={{ p: 3, width: '100%', borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
+              <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.75rem', mb: 1, fontWeight: 600, textTransform: 'uppercase' }}>
+                Organization Assignment
+              </Typography>
+              <Typography variant="h6" fontWeight={700} sx={{ color: 'var(--text-primary)', fontSize: '1.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {profile.role === 'intern' 
+                  ? `${profile.entity_name || 'InternFlow'} · ${profile.domain_name || '—'}` 
+                  : profile.entity_name || '—'
+                }
+              </Typography>
+            </Paper>
+            <Paper sx={{ p: 3, width: '100%', borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
+              <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.75rem', mb: 1, fontWeight: 600, textTransform: 'uppercase' }}>
+                Account Status
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: profile.user_status === 'active' ? '#22c55e' : '#eab308' }} />
+                <Typography variant="h6" fontWeight={700} sx={{ color: 'var(--text-primary)', textTransform: 'capitalize', fontSize: '1.1rem' }}>
+                  {profile.user_status === 'active' ? 'Active' : (profile.user_status === 'inprogress' ? 'In Progress' : profile.user_status || 'Pending')}
                 </Typography>
-                <Typography variant="h6" fontWeight={700} sx={{ color: 'var(--text-primary)' }}>
-                  {profile.emp_id || '—'}
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, width: '100%', borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
-                <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.75rem', mb: 1, fontWeight: 600, textTransform: 'uppercase' }}>
-                  Organization Assignment
-                </Typography>
-                <Typography variant="h6" fontWeight={700} sx={{ color: 'var(--text-primary)', fontSize: '1.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {profile.role === 'intern' 
-                    ? `${profile.entity_name || 'InternFlow'} · ${profile.domain_name || '—'}` 
-                    : profile.entity_name || '—'
-                  }
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, width: '100%', borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
-                <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.75rem', mb: 1, fontWeight: 600, textTransform: 'uppercase' }}>
-                  Account Status
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: profile.user_status === 'active' ? '#22c55e' : '#eab308' }} />
-                  <Typography variant="h6" fontWeight={700} sx={{ color: 'var(--text-primary)', textTransform: 'capitalize', fontSize: '1.1rem' }}>
-                    {profile.user_status === 'active' ? 'Active' : (profile.user_status === 'inprogress' ? 'In Progress' : profile.user_status || 'Pending')}
-                  </Typography>
-                </Box>
-              </Paper>
-            </Grid>
-          </Grid>
+              </Box>
+            </Paper>
+          </Box>
 
           {/* Personal Information Panel */}
           <Paper sx={{ p: 4, borderRadius: '12px', border: '1px solid var(--border-color)', bgcolor: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}>
