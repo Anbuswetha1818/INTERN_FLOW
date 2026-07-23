@@ -63,7 +63,7 @@ function RiskFlagBadge({ flag }) {
 function MetricBar({ label, value, max = 100, color = 'primary' }) {
   return (
     <Box sx={{ mb: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5, gap: 1.5 }}>
         <Typography variant="body2" fontWeight={600}>{label}</Typography>
         <Typography variant="body2" fontWeight={700} color={`${color}.main`}>{value}%</Typography>
       </Box>
@@ -145,90 +145,96 @@ export default function PerformancePage() {
           {/* AI Score + Risk Flags */}
           <Grid xs={12} md={4}>
             <Paper className="glass-card" elevation={0} sx={{ p: 3, textAlign: 'center', height: '100%' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', mb: 3 }}>
-                <Psychology sx={{ color: '#8b5cf6' }} />
-                <Typography variant="h6" fontWeight={800}>AI Performance Score</Typography>
-              </Box>
-              <AIScoreGauge score={report.ai_score || 0} />
+              <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'stretch' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', mb: 3 }}>
+                  <Psychology sx={{ color: '#8b5cf6' }} />
+                  <Typography variant="h6" fontWeight={800}>AI Performance Score</Typography>
+                </Box>
+                <AIScoreGauge score={report.ai_score || 0} />
 
-              {report.risk_flags?.length > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="caption" color="error.main" fontWeight={700} display="block" mb={1}>Risk Flags</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
-                    {report.risk_flags.map((flag, i) => <RiskFlagBadge key={i} flag={flag} />)}
+                {report.risk_flags?.length > 0 && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="caption" color="error.main" fontWeight={700} display="block" mb={1}>Risk Flags</Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
+                      {report.risk_flags.map((flag, i) => <RiskFlagBadge key={i} flag={flag} />)}
+                    </Box>
                   </Box>
-                </Box>
-              )}
+                )}
 
-              {report.risk_flags?.length === 0 && (
-                <Box sx={{ mt: 3 }}>
-                  <Chip icon={<CheckCircle />} label="No Risk Flags" color="success" variant="outlined" />
-                </Box>
-              )}
+                {report.risk_flags?.length === 0 && (
+                  <Box sx={{ mt: 3 }}>
+                    <Chip icon={<CheckCircle />} label="No Risk Flags" color="success" variant="outlined" />
+                  </Box>
+                )}
 
-              {report.cached && (
-                <Box sx={{ mt: 2 }}>
-                  <Button size="small" startIcon={<Refresh />} onClick={generateReport} disabled={generating}>
-                    Refresh Analysis
-                  </Button>
-                </Box>
-              )}
+                {report.cached && (
+                  <Box sx={{ mt: 2 }}>
+                    <Button size="small" startIcon={<Refresh />} onClick={generateReport} disabled={generating}>
+                      Refresh Analysis
+                    </Button>
+                  </Box>
+                )}
+              </Box>
             </Paper>
           </Grid>
 
           {/* Metrics Breakdown */}
           <Grid xs={12} md={4}>
             <Paper className="glass-card" elevation={0} sx={{ p: 3, height: '100%' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <TrendingUp color="primary" />
-                <Typography variant="h6" fontWeight={800}>Key Metrics</Typography>
-              </Box>
-              {report.metrics && (
-                <>
-                  <MetricBar label="Attendance Rate" value={report.metrics.attendance_pct} color={report.metrics.attendance_pct >= 75 ? 'success' : 'error'} />
-                  <MetricBar label="Task Completion Rate" value={report.metrics.completion_rate} color={report.metrics.completion_rate >= 70 ? 'success' : 'warning'} />
-                  <MetricBar label="Average Task Progress" value={report.metrics.avg_progress} color="primary" />
-                  <MetricBar label="Quality Rating" value={report.metrics.quality_rating * 10} color="secondary" />
+              <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                  <TrendingUp color="primary" />
+                  <Typography variant="h6" fontWeight={800}>Key Metrics</Typography>
+                </Box>
+                {report.metrics && (
+                  <>
+                    <MetricBar label="Attendance Rate" value={report.metrics.attendance_pct} color={report.metrics.attendance_pct >= 75 ? 'success' : 'error'} />
+                    <MetricBar label="Task Completion Rate" value={report.metrics.completion_rate} color={report.metrics.completion_rate >= 70 ? 'success' : 'warning'} />
+                    <MetricBar label="Average Task Progress" value={report.metrics.avg_progress} color="primary" />
+                    <MetricBar label="Quality Rating" value={report.metrics.quality_rating * 10} color="secondary" />
 
-                  <Divider sx={{ my: 2 }} />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="caption" color="text.secondary">Tasks Completed</Typography>
-                    <Typography variant="caption" fontWeight={700}>{report.metrics.completed_tasks}/{report.metrics.total_tasks}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
-                    <Typography variant="caption" color="text.secondary">Days Present (30d)</Typography>
-                    <Typography variant="caption" fontWeight={700}>{report.metrics.present_days}/30</Typography>
-                  </Box>
-                </>
-              )}
+                    <Divider sx={{ my: 2 }} />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="caption" color="text.secondary">Tasks Completed</Typography>
+                      <Typography variant="caption" fontWeight={700}>{report.metrics.completed_tasks}/{report.metrics.total_tasks}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
+                      <Typography variant="caption" color="text.secondary">Days Present (30d)</Typography>
+                      <Typography variant="caption" fontWeight={700}>{report.metrics.present_days}/30</Typography>
+                    </Box>
+                  </>
+                )}
+              </Box>
             </Paper>
           </Grid>
 
           {/* Score Breakdown */}
           <Grid xs={12} md={4}>
             <Paper className="glass-card" elevation={0} sx={{ p: 3, height: '100%' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <Star sx={{ color: '#f59e0b' }} />
-                <Typography variant="h6" fontWeight={800}>Score Breakdown</Typography>
-              </Box>
-              <Box>
-                {[
-                  { label: 'Attendance (25%)', value: Math.round((report.metrics?.attendance_pct || 0) * 0.25), color: '#22c55e' },
-                  { label: 'Task Completion (30%)', value: Math.round((report.metrics?.completion_rate || 0) * 0.30), color: '#6366f1' },
-                  { label: 'Avg Progress (20%)', value: Math.round((report.metrics?.avg_progress || 0) * 0.20), color: '#f59e0b' },
-                  { label: 'Quality Rating (25%)', value: Math.round(Math.min(report.metrics?.quality_rating * 10 || 0, 100) * 0.25), color: '#ec4899' },
-                ].map((item, i) => (
-                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: item.color, flexShrink: 0 }} />
-                    <Box sx={{ flex: 1 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Typography variant="caption" fontWeight={600}>{item.label}</Typography>
-                        <Typography variant="caption" fontWeight={700} sx={{ color: item.color }}>{item.value} pts</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                  <Star sx={{ color: '#f59e0b' }} />
+                  <Typography variant="h6" fontWeight={800}>Score Breakdown</Typography>
+                </Box>
+                <Box>
+                  {[
+                    { label: 'Attendance (25%)', value: Math.round((report.metrics?.attendance_pct || 0) * 0.25), color: '#22c55e' },
+                    { label: 'Task Completion (30%)', value: Math.round((report.metrics?.completion_rate || 0) * 0.30), color: '#6366f1' },
+                    { label: 'Avg Progress (20%)', value: Math.round((report.metrics?.avg_progress || 0) * 0.20), color: '#f59e0b' },
+                    { label: 'Quality Rating (25%)', value: Math.round(Math.min(report.metrics?.quality_rating * 10 || 0, 100) * 0.25), color: '#ec4899' },
+                  ].map((item, i) => (
+                    <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: item.color, flexShrink: 0 }} />
+                      <Box sx={{ flex: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                          <Typography variant="caption" fontWeight={600}>{item.label}</Typography>
+                          <Typography variant="caption" fontWeight={700} sx={{ color: item.color }}>{item.value} pts</Typography>
+                        </Box>
+                        <LinearProgress variant="determinate" value={item.value} sx={{ height: 6, borderRadius: 3, bgcolor: item.color + '22', '& .MuiLinearProgress-bar': { bgcolor: item.color } }} />
                       </Box>
-                      <LinearProgress variant="determinate" value={item.value} sx={{ height: 6, borderRadius: 3, bgcolor: item.color + '22', '& .MuiLinearProgress-bar': { bgcolor: item.color } }} />
                     </Box>
-                  </Box>
-                ))}
+                  ))}
+                </Box>
               </Box>
             </Paper>
           </Grid>
