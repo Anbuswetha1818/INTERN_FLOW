@@ -223,14 +223,15 @@ function StaffCard({ row, getRoleColor, handleOpenEdit, setDeleteDialog, userRol
       <Grid container spacing={2}>
         <Grid item xs={6}>
           <Typography variant="caption" color="text.secondary" display="block">Role</Typography>
-          <Chip 
-            label={row.role?.toUpperCase()} 
-            size="small" 
-            color={getRoleColor(row.role)} 
-            icon={row.role === 'superadmin' ? <AdminPanelSettings fontSize="small" /> : undefined}
-            variant={row.role === 'superadmin' ? 'filled' : 'outlined'}
-            sx={{ mt: 0.5 }}
-          />
+          <Box sx={{ mt: 0.5 }}>
+            <Chip 
+              label={row.role?.toUpperCase()} 
+              size="small" 
+              color={getRoleColor(row.role)} 
+              icon={row.role === 'superadmin' ? <AdminPanelSettings fontSize="small" /> : undefined}
+              variant={row.role === 'superadmin' ? 'filled' : 'outlined'}
+            />
+          </Box>
         </Grid>
         <Grid item xs={6}>
           <Typography variant="caption" color="text.secondary" display="block">Status</Typography>

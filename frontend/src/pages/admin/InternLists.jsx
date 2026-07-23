@@ -59,8 +59,10 @@ function InternCard({ row, readOnly, userRole, handleOpenEdit, setDeleteDialog, 
       <Grid container spacing={2}>
         <Grid item xs={6}>
           <Typography variant="caption" color="text.secondary" display="block">Domain</Typography>
-          <Typography variant="body2" fontWeight={600}>{row.domain_name || 'N/A'}</Typography>
-          <Typography variant="caption" color="text.secondary">{row.scheme?.toUpperCase()} Scheme</Typography>
+          <Box sx={{ mt: 0.5 }}>
+            <Typography variant="body2" fontWeight={600}>{row.domain_name || 'N/A'}</Typography>
+            <Typography variant="caption" color="text.secondary">{row.scheme?.toUpperCase()} Scheme</Typography>
+          </Box>
         </Grid>
         <Grid item xs={6}>
           <Typography variant="caption" color="text.secondary" display="block">Status</Typography>
