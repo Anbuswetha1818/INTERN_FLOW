@@ -115,9 +115,9 @@ export default function PerformancePage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+      <Box className="page-header" sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Box>
-          <Typography variant="h4" fontWeight={800}>Performance Dashboard</Typography>
+          <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>Performance Dashboard</Typography>
           <Typography variant="body2" color="text.secondary">AI-powered analysis of your internship performance.</Typography>
         </Box>
         <Button
@@ -125,7 +125,11 @@ export default function PerformancePage() {
           onClick={generateReport}
           disabled={generating}
           startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
-          sx={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', fontWeight: 700 }}
+          sx={{ 
+            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', 
+            fontWeight: 700,
+            width: { xs: '100%', sm: 'auto' }
+          }}
         >
           {generating ? 'Analyzing with AI...' : 'Generate AI Report'}
         </Button>
@@ -148,7 +152,7 @@ export default function PerformancePage() {
               <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'stretch' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', mb: 3 }}>
                   <Psychology sx={{ color: '#8b5cf6' }} />
-                  <Typography variant="h6" fontWeight={800}>AI Performance Score</Typography>
+                  <Typography variant="h6" fontWeight={800} sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>AI Performance Score</Typography>
                 </Box>
                 <AIScoreGauge score={report.ai_score || 0} />
 
@@ -182,9 +186,9 @@ export default function PerformancePage() {
           <Grid xs={12} md={4}>
             <Paper className="glass-card" elevation={0} sx={{ p: 3, height: '100%' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, justifyContent: { xs: 'center', md: 'flex-start' } }}>
                   <TrendingUp color="primary" />
-                  <Typography variant="h6" fontWeight={800}>Key Metrics</Typography>
+                  <Typography variant="h6" fontWeight={800} sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>Key Metrics</Typography>
                 </Box>
                 {report.metrics && (
                   <>
@@ -212,9 +216,9 @@ export default function PerformancePage() {
           <Grid xs={12} md={4}>
             <Paper className="glass-card" elevation={0} sx={{ p: 3, height: '100%' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, justifyContent: { xs: 'center', md: 'flex-start' } }}>
                   <Star sx={{ color: '#f59e0b' }} />
-                  <Typography variant="h6" fontWeight={800}>Score Breakdown</Typography>
+                  <Typography variant="h6" fontWeight={800} sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>Score Breakdown</Typography>
                 </Box>
                 <Box>
                   {[
